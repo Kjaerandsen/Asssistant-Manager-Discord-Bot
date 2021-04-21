@@ -14,7 +14,7 @@ import (
 // Variables used for command line parameters
 var (
 	Token string
-	Prefix = "@bot "
+	Prefix = "@bot"
 )
 
 func init() {
@@ -57,54 +57,165 @@ func main(){
 // message is created on any channel that the authenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
+	// Ignore all messages created by the bot itself,
+	// and anything that doesn't start with the prefix
 	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, Prefix){
 		return
 	}
 
-	_, command, object, flags, err := parseContent(m.Content)
+	_, subCommand, command, flags, err := parseContent(m.Content)
 	if err != nil{
 		s.ChannelMessageSend(m.ChannelID, err.Error())
 		return
 	}
 
-	switch object{
+	switch command{
 	case "weather":
-		if command == "get"{
-			if len(flags) != 0 { // Needs a better check
-				message := "Getting weather"
-				if val, ok := flags["-location"]; ok {
-					message += " in " + val
-				}
-
-				if val, ok := flags["-time"]; ok {
-					message += " for " + val
-				}
-
-				s.ChannelMessageSend(m.ChannelID, message)
-			} else {
-				// Defaulting
-				s.ChannelMessageSend(m.ChannelID, "Getting weather ..")
-			}
-		} else {
-			s.ChannelMessageSend(m.ChannelID, "Command not recognized...")
+		reply, err := handleCommandToWeather(subCommand, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
-	case "news":
-		// To be implemented
-	case "reminders":
-		// To be implemented
-	case "bills":
-		// To be implemented
-	}
 
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case "news":
+		reply, err := handleCommandsToNews(subCommand, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case "reminders":
+		reply, err:= handleCommandsToReminder(subCommand, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case "bills":
+		reply, err:= handleCommandsToBill(subCommand, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case "config":
+		var reply string
+
+		if subCommand == "view"{
+			// Get config file for user
+			reply = "config-view"
+		} else if subCommand == "set"{
+			// Set values in config file for user
+			reply = "config-set"
+		} else {
+			//
+			reply = "subCommand not recognized"
+		}
+
+		s.ChannelMessageSend(m.ChannelID, reply)
+	default:
+		s.ChannelMessageSend(m.ChannelID, "command not recognized")
+	}
+}
+
+func handleCommandToWeather(subCommand string, flags map[string]string)(string, error){
+	// Check if command is valid
+	switch subCommand{
+	case "get", "view", "check":
+		if len(flags) != 0 {
+			return "Getting weather with flags...", nil
+		} else {
+			return "Getting default weather...", nil
+		}
+	default:
+		return "", errors.New("sub command not recognized")
+	}
+}
+
+func handleCommandsToNews(subCommand string, flags map[string]string)(string, error){
+	switch subCommand{
+	case "get", "view", "check":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "...", nil
+		}
+	case "add", "set":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "", errors.New("flags are needed")
+		}
+	case "delete", "remove":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "", errors.New("flags are needed")
+		}
+	default:
+		return "", errors.New(("sub command not recognized"))
+	}
+}
+
+func handleCommandsToReminder(subCommand string, flags map[string]string)(string, error){
+	switch subCommand{
+	case "get", "view", "check":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "...", nil
+		}
+	case "add", "set":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "", errors.New("flags are needed")
+		}
+	case "delete", "remove":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "", errors.New("flags are needed")
+		}
+	default:
+		return "", errors.New(("sub command not recognized"))
+	}
+}
+
+func handleCommandsToBill(subCommand string, flags map[string]string)(string, error){
+	switch subCommand{
+	case "get", "view", "check":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "...", nil
+		}
+	case "add", "set":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "", errors.New("flags are needed")
+		}
+	case "delete", "remove":
+		if len(flags) != 0{
+			return "...", nil
+		} else {
+			return "", errors.New("flags are needed")
+		}
+	default:
+		return "", errors.New(("sub command not recognized"))
+	}
 }
 
 func parseContent(content string)(string, string, string, map[string]string, error){
 	// Variables
 	var prefix string
+	var subCommand string
 	var command string
-	var object string
 	var potentialFlags []string
 
 	// Split content
@@ -112,7 +223,7 @@ func parseContent(content string)(string, string, string, map[string]string, err
 	if len(s) < 3{
 		return "", "", "", nil, errors.New("invalid command syntax")
 	}
-	prefix, command, object = s[0], s[1], s[2]
+	prefix, subCommand, command = s[0], s[1], s[2]
 
 	if len(s) > 3{
 		potentialFlags = s[3:]
@@ -136,5 +247,5 @@ func parseContent(content string)(string, string, string, map[string]string, err
 		}
 	}
 
-	return prefix, command, object, flags, nil
+	return prefix, subCommand, command, flags, nil
 }
