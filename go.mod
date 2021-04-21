@@ -1,4 +1,4 @@
-module asssistant-manager-discord-bot
+module assistant
 
 go 1.16
 

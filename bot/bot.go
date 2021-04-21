@@ -1,6 +1,8 @@
 package main
 
 import (
+	"assistant/services"
+	"assistant/utils"
 	"errors"
 	"flag"
 	"fmt"
@@ -11,10 +13,13 @@ import (
 	"syscall"
 )
 
-// Variables used for command line parameters
+/*
+	Discord bot identification variables
+*/
 var (
 	Token string
-	Prefix = "@bot"
+	BotPrefix = "@bot"
+	FlagPrefix = "-"
 )
 
 func init() {
@@ -59,155 +64,77 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself,
 	// and anything that doesn't start with the prefix
-	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, Prefix){
+	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, BotPrefix){
 		return
 	}
 
-	_, subCommand, command, flags, err := parseContent(m.Content)
+	_, subRoute, route, flags, err := parseContent(m.Content)
 	if err != nil{
 		s.ChannelMessageSend(m.ChannelID, err.Error())
 		return
 	}
 
-	switch command{
-	case "weather":
-		reply, err := handleCommandToWeather(subCommand, flags)
+	switch route{
+	case utils.Weather:
+		reply, err := services.HandleRouteToWeather(subRoute, flags)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 
 		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
-	case "news":
-		reply, err := handleCommandsToNews(subCommand, flags)
+	case utils.News:
+		reply, err := services.HandleRouteToNews(subRoute, flags)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 
 		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
-	case "reminders":
-		reply, err:= handleCommandsToReminder(subCommand, flags)
+	case utils.Reminders:
+		reply, err:= services.HandleRouteToReminder(subRoute, flags)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 
 		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
-	case "bills":
-		reply, err:= handleCommandsToBill(subCommand, flags)
+	case utils.Bills:
+		reply, err:= services.HandleRouteToBills(subRoute, flags)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 
 		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
-	case "config":
-		var reply string
-
-		if subCommand == "view"{
-			// Get config file for user
-			reply = "config-view"
-		} else if subCommand == "set"{
-			// Set values in config file for user
-			reply = "config-set"
-		} else {
-			//
-			reply = "subCommand not recognized"
+	case utils.MealPlan:
+		reply, err:= services.HandleRouteToMeals(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 
+		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Config:
+		reply, err:= services.HandleRouteToConfig(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Diag:
+		reply, err:= services.HandleRouteToDiag(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Settings:
+
 	default:
 		s.ChannelMessageSend(m.ChannelID, "command not recognized")
-	}
-}
-
-func handleCommandToWeather(subCommand string, flags map[string]string)(string, error){
-	// Check if command is valid
-	switch subCommand{
-	case "get", "view", "check":
-		if len(flags) != 0 {
-			return "Getting weather with flags...", nil
-		} else {
-			return "Getting default weather...", nil
-		}
-	default:
-		return "", errors.New("sub command not recognized")
-	}
-}
-
-func handleCommandsToNews(subCommand string, flags map[string]string)(string, error){
-	switch subCommand{
-	case "get", "view", "check":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "...", nil
-		}
-	case "add", "set":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "", errors.New("flags are needed")
-		}
-	case "delete", "remove":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "", errors.New("flags are needed")
-		}
-	default:
-		return "", errors.New(("sub command not recognized"))
-	}
-}
-
-func handleCommandsToReminder(subCommand string, flags map[string]string)(string, error){
-	switch subCommand{
-	case "get", "view", "check":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "...", nil
-		}
-	case "add", "set":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "", errors.New("flags are needed")
-		}
-	case "delete", "remove":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "", errors.New("flags are needed")
-		}
-	default:
-		return "", errors.New(("sub command not recognized"))
-	}
-}
-
-func handleCommandsToBill(subCommand string, flags map[string]string)(string, error){
-	switch subCommand{
-	case "get", "view", "check":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "...", nil
-		}
-	case "add", "set":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "", errors.New("flags are needed")
-		}
-	case "delete", "remove":
-		if len(flags) != 0{
-			return "...", nil
-		} else {
-			return "", errors.New("flags are needed")
-		}
-	default:
-		return "", errors.New(("sub command not recognized"))
 	}
 }
 
@@ -235,7 +162,7 @@ func parseContent(content string)(string, string, string, map[string]string, err
 
 	if len(potentialFlags) != 0{
 		for _, element := range potentialFlags{
-			if strings.HasPrefix(element, "-"){
+			if strings.HasPrefix(element, FlagPrefix){
 				if _, ok := flags[currentFlag]; ok {
 					flags[currentFlag] = strings.TrimSpace(flags[currentFlag])
 				}
