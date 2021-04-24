@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	embed "github.com/clinet/discordgo-embed"
 	"os"
 	"os/signal"
 	"strings"
@@ -81,8 +82,18 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
 
+		// Test for weather embed
+		var weatherEmbed = embed.NewEmbed()
+		weatherEmbed.SetTitle("Weather forecast")
+		weatherEmbed.SetDescription("Forecast for the day")
+		weatherEmbed.AddField("Temperature:", "16C")
+		weatherEmbed.AddField("Humidity	Pressure	SW Wind", "33%	1024 pHa	2 m/s")
+		weatherEmbed.AddField("Visibility", "24 km")
+		weatherEmbed.SetFooter("Data provided by datasource")
+
 		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
+		s.ChannelMessageSendEmbed(m.ChannelID, weatherEmbed.MessageEmbed)
 	case utils.News:
 		reply, err := services.HandleRouteToNews(subRoute, flags)
 		if err != nil {
