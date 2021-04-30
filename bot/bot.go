@@ -24,7 +24,7 @@ var (
 
 func init() {
 	Token = os.Getenv("BOT_TOKEN")
-	//flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
 
@@ -36,7 +36,7 @@ func main(){
 	}
 
 	// Register the messageCreate func as a callback for MessageCreate events.
-	discord.AddHandler(messageCreate)
+	discord.AddHandler(router)
 	// In this example, we only care about receiving message events.
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
 
@@ -60,7 +60,9 @@ func main(){
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
-func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
+func router(s *discordgo.Session, m *discordgo.MessageCreate) {
+	var reply = discordgo.MessageEmbed{}
+	var err error
 
 	// Ignore all messages created by the bot itself,
 	// and anything that doesn't start with the prefix
@@ -76,86 +78,32 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	switch route{
 	case utils.Weather:
-		reply, err := services.HandleRouteToWeather(subRoute, flags)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-
-		// Test for weather embed
-		var weatherEmbed = discordgo.MessageEmbed{}
-		weatherEmbed.Title = "Weather forecast"
-		weatherEmbed.Description = "Forecast for the day"
-
-		// Create fields
-		temperature := discordgo.MessageEmbedField{Name: "Temperature", Value: "16C"}
-		humidity := discordgo.MessageEmbedField{Name: "Humidity", Value: "33%", Inline: true}
-		pressure := discordgo.MessageEmbedField{Name: "Pressure", Value: "1024 pHa", Inline: true}
-		wind := discordgo.MessageEmbedField{Name: "Wind", Value: "2 m/s", Inline: true}
-		visibility := discordgo.MessageEmbedField{Name: "Visibility", Value: "24 km", Inline: true}
-		fields := []*discordgo.MessageEmbedField{&temperature, &humidity, &pressure, &wind, &visibility}
-
-		// Create footer
-		footer := discordgo.MessageEmbedFooter{Text: "Data provided by datasource"}
-
-		// Set footer and fields
-		weatherEmbed.Fields = fields
-		weatherEmbed.Footer = &footer
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
-		s.ChannelMessageSendEmbed(m.ChannelID, &weatherEmbed)
+		reply, err = services.HandleRouteToWeather(subRoute, flags)
 	case utils.News:
-		reply, err := services.HandleRouteToNews(subRoute, flags)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
+		reply, err = services.HandleRouteToNews(subRoute, flags)
 	case utils.Reminders:
-		reply, err:= services.HandleRouteToReminder(subRoute, flags)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
+		reply, err = services.HandleRouteToReminder(subRoute, flags)
 	case utils.Bills:
-		reply, err:= services.HandleRouteToBills(subRoute, flags)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
+		reply, err = services.HandleRouteToBills(subRoute, flags)
 	case utils.MealPlan:
-		reply, err:= services.HandleRouteToMeals(subRoute, flags)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
+		reply, err = services.HandleRouteToMeals(subRoute, flags)
 	case utils.Config:
-		reply, err:= services.HandleRouteToConfig(subRoute, flags)
-		if err != nil {
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-		}
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
+		reply, err = services.HandleRouteToConfig(subRoute, flags)
 	case utils.Diag:
-		reply, err:= services.HandleRouteToDiag(subRoute, flags)
+		reply, err = services.HandleRouteToDiag(subRoute, flags)
 		if err != nil {
 			s.ChannelMessageSend(m.ChannelID, err.Error())
 		}
-
-		// Send reply
-		s.ChannelMessageSend(m.ChannelID, reply)
 	case utils.Settings:
-
 	default:
 		s.ChannelMessageSend(m.ChannelID, "command not recognized")
+	}
+
+	// Send reply
+	if err != nil {			// Error handling
+		s.ChannelMessageSend(m.ChannelID, err.Error())
+	} else {				// Result
+		s.ChannelMessageSendEmbed(m.ChannelID, &reply)
 	}
 }
 
