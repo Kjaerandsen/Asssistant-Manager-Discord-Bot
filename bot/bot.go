@@ -18,7 +18,7 @@ import (
 */
 var (
 	Token string
-	BotPrefix = "@bot"
+	BotPrefix = "@news"
 	FlagPrefix = "-"
 )
 

@@ -12,6 +12,8 @@ func HandleRouteToWeather(subRoute string, flags map[string]string)(discordgo.Me
 	switch subRoute{
 	case utils.Get, utils.View, utils.Check:
 		if len(flags) != 0 {
+			return weatherEmbed, nil
+		} else {
 			// Test for weather embed
 			weatherEmbed.Title = "Weather forecast"
 			weatherEmbed.Description = "Forecast for the day"
@@ -30,9 +32,6 @@ func HandleRouteToWeather(subRoute string, flags map[string]string)(discordgo.Me
 			// Set footer and fields
 			weatherEmbed.Fields = fields
 			weatherEmbed.Footer = &footer
-
-			return weatherEmbed, nil
-		} else {
 
 			return weatherEmbed, nil
 		}
