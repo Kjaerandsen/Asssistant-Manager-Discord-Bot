@@ -7,7 +7,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
-	embed "github.com/clinet/discordgo-embed"
 	"os"
 	"os/signal"
 	"strings"
@@ -24,8 +23,8 @@ var (
 )
 
 func init() {
-
-	flag.StringVar(&Token, "t", "", "Bot Token")
+	Token = os.Getenv("BOT_TOKEN")
+	//flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
 
@@ -83,17 +82,28 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		}
 
 		// Test for weather embed
-		var weatherEmbed = embed.NewEmbed()
-		weatherEmbed.SetTitle("Weather forecast")
-		weatherEmbed.SetDescription("Forecast for the day")
-		weatherEmbed.AddField("Temperature:", "16C")
-		weatherEmbed.AddField("Humidity	Pressure	SW Wind", "33%	1024 pHa	2 m/s")
-		weatherEmbed.AddField("Visibility", "24 km")
-		weatherEmbed.SetFooter("Data provided by datasource")
+		var weatherEmbed = discordgo.MessageEmbed{}
+		weatherEmbed.Title = "Weather forecast"
+		weatherEmbed.Description = "Forecast for the day"
+
+		// Create fields
+		temperature := discordgo.MessageEmbedField{Name: "Temperature", Value: "16C"}
+		humidity := discordgo.MessageEmbedField{Name: "Humidity", Value: "33%", Inline: true}
+		pressure := discordgo.MessageEmbedField{Name: "Pressure", Value: "1024 pHa", Inline: true}
+		wind := discordgo.MessageEmbedField{Name: "Wind", Value: "2 m/s", Inline: true}
+		visibility := discordgo.MessageEmbedField{Name: "Visibility", Value: "24 km", Inline: true}
+		fields := []*discordgo.MessageEmbedField{&temperature, &humidity, &pressure, &wind, &visibility}
+
+		// Create footer
+		footer := discordgo.MessageEmbedFooter{Text: "Data provided by datasource"}
+
+		// Set footer and fields
+		weatherEmbed.Fields = fields
+		weatherEmbed.Footer = &footer
 
 		// Send reply
 		s.ChannelMessageSend(m.ChannelID, reply)
-		s.ChannelMessageSendEmbed(m.ChannelID, weatherEmbed.MessageEmbed)
+		s.ChannelMessageSendEmbed(m.ChannelID, &weatherEmbed)
 	case utils.News:
 		reply, err := services.HandleRouteToNews(subRoute, flags)
 		if err != nil {
