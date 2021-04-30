@@ -1,17 +1,26 @@
 package main
 
 import (
+	"assistant/services"
+	"assistant/utils"
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
+	embed "github.com/clinet/discordgo-embed"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
-// Variables used for command line parameters
+/*
+	Discord bot identification variables
+*/
 var (
 	Token string
+	BotPrefix = "@bot"
+	FlagPrefix = "-"
 )
 
 func init() {
@@ -54,18 +63,127 @@ func main(){
 // message is created on any channel that the authenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
-	if m.Author.ID == s.State.User.ID {
+	// Ignore all messages created by the bot itself,
+	// and anything that doesn't start with the prefix
+	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, BotPrefix){
 		return
 	}
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
+
+	_, subRoute, route, flags, err := parseContent(m.Content)
+	if err != nil{
+		s.ChannelMessageSend(m.ChannelID, err.Error())
+		return
 	}
 
-	// If the message is "pong" reply with "Ping!"
-	if m.Content == "pong" {
-		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	switch route{
+	case utils.Weather:
+		reply, err := services.HandleRouteToWeather(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Test for weather embed
+		var weatherEmbed = embed.NewEmbed()
+		weatherEmbed.SetTitle("Weather forecast")
+		weatherEmbed.SetDescription("Forecast for the day")
+		weatherEmbed.AddField("Temperature:", "16C")
+		weatherEmbed.AddField("Humidity	Pressure	SW Wind", "33%	1024 pHa	2 m/s")
+		weatherEmbed.AddField("Visibility", "24 km")
+		weatherEmbed.SetFooter("Data provided by datasource")
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+		s.ChannelMessageSendEmbed(m.ChannelID, weatherEmbed.MessageEmbed)
+	case utils.News:
+		reply, err := services.HandleRouteToNews(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Reminders:
+		reply, err:= services.HandleRouteToReminder(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Bills:
+		reply, err:= services.HandleRouteToBills(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.MealPlan:
+		reply, err:= services.HandleRouteToMeals(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Config:
+		reply, err:= services.HandleRouteToConfig(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Diag:
+		reply, err:= services.HandleRouteToDiag(subRoute, flags)
+		if err != nil {
+			s.ChannelMessageSend(m.ChannelID, err.Error())
+		}
+
+		// Send reply
+		s.ChannelMessageSend(m.ChannelID, reply)
+	case utils.Settings:
+
+	default:
+		s.ChannelMessageSend(m.ChannelID, "command not recognized")
 	}
+}
+
+func parseContent(content string)(string, string, string, map[string]string, error){
+	// Variables
+	var prefix string
+	var subCommand string
+	var command string
+	var potentialFlags []string
+
+	// Split content
+	s := strings.Split(content, " ")
+	if len(s) < 3{
+		return "", "", "", nil, errors.New("invalid command syntax")
+	}
+	prefix, subCommand, command = s[0], s[1], s[2]
+
+	if len(s) > 3{
+		potentialFlags = s[3:]
+	}
+
+	// Process flags
+	var flags = make(map[string]string)
+	currentFlag := ""
+
+	if len(potentialFlags) != 0{
+		for _, element := range potentialFlags{
+			if strings.HasPrefix(element, FlagPrefix){
+				if _, ok := flags[currentFlag]; ok {
+					flags[currentFlag] = strings.TrimSpace(flags[currentFlag])
+				}
+
+				currentFlag = element
+			} else {
+				flags[currentFlag] += element + " "
+			}
+		}
+	}
+
+	return prefix, subCommand, command, flags, nil
 }
