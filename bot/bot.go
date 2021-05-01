@@ -1,6 +1,7 @@
 package main
 
 import (
+	"assistant/DB"
 	"assistant/services"
 	"assistant/utils"
 	"errors"
@@ -34,6 +35,9 @@ func main(){
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
+
+	// Initiates the database connection
+	DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
@@ -69,6 +73,10 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, BotPrefix){
 		return
 	}
+
+	// TODO remove this, for testing purposes only
+	// m.Author.ID is a unique identifier for the user typing the message
+	DB.Test(m.Author.ID)
 
 	_, subRoute, route, flags, err := parseContent(m.Content)
 	if err != nil{
