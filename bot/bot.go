@@ -125,9 +125,7 @@ func spinReaction(messageID string, channelID string, replies []ds.MessageEmbed,
 	s.MessageReactionAdd(channelID, messageID, "❌")
 
 	var index = 0
-	for i := 0; i < 30;{
-
-
+	for i := 0; i < 30000;{
 		/* Timeout Counter
 		go func(i *int){
 			for *i < 30 {
@@ -136,17 +134,14 @@ func spinReaction(messageID string, channelID string, replies []ds.MessageEmbed,
 		}(&i)
 		 */
 
-		// Gets newest message
-		message, _ := s.ChannelMessage(channelID, messageID)
-
 		if users, _ := s.MessageReactions(channelID, messageID, "◀", 2, "", ""); len(users) > 1{ // "◀"
 			index -= 1
 
-			if index < len(replies){
+			if index < 0{
 				index = len(replies) - 1
 			}
 
-			s.ChannelMessageEditEmbed(channelID, message.ID, &replies[index])
+			s.ChannelMessageEditEmbed(channelID, messageID, &replies[index])
 			s.MessageReactionRemove(channelID, messageID, "◀", users[0].ID)
 
 			// Reset counter
@@ -158,8 +153,7 @@ func spinReaction(messageID string, channelID string, replies []ds.MessageEmbed,
 				index = 0
 			}
 
-
-			s.ChannelMessageEditEmbed(channelID, message.ID, &replies[index])
+			s.ChannelMessageEditEmbed(channelID, messageID, &replies[index])
 			s.MessageReactionRemove(channelID, messageID, "▶", users[0].ID)
 
 			// Reset counter
