@@ -5,6 +5,7 @@ import (
 	"context"
 	firebase "firebase.google.com/go"
 	"fmt"
+	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
 	"log"
 )
@@ -57,12 +58,42 @@ func RetrieveFromDatabase(collection string, entry string) map[string]interface{
 	return data.Data()
 }
 
-// Test function for testing adding data to the database
+// RetrieveAll Returns a map of all documents in the parameter collection
+func RetrieveAll(collection string) map[string]interface{}{
+	data := make(map[string]interface{})
+	iter := Client.Collection(collection).Documents(Ctx) // Loop through all entries in param collection
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		// Add the document to the data map with the documents id as the map key
+		data[doc.Ref.ID] = doc.Data()
+	}
+
+	// Returns the data
+	return data
+}
+
+// Test function for adding test data to the database & retrieving data
 func Test(i string){
 	data := make(map[string]interface{})
 	data["Location"] = "Oslo"
 	data["n"] = "s"
+	// Add a value to the map
 	data["v"] = "v"
+	// Delete a value from the map
+	delete(data,"v")
 
-	AddToDatabase("Users", i, data)
+	AddToDatabase("Users", i+"dwa", data)
+
+	// Retrieves and prints all users
+	data = RetrieveAll("Users")
+	fmt.Println(data)
+
+	fmt.Println("SINGLE ENTRY")
+
+	// Retrieves and prints a single user entry
+	data = RetrieveFromDatabase("Users", "181069578170793984")
+	fmt.Println(data)
 }
