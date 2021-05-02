@@ -1,3 +1,4 @@
 .idea
 *.exe
 ./bot/bot
+./DB/service-account.json
