@@ -19,7 +19,7 @@ var Client *firestore.Client
 func DatabaseInit(){
 	// Connects to the firestore database
 	Ctx = context.Background()
-	sa := option.WithCredentialsFile("./DB/service-account.json")
+	sa := option.WithCredentialsFile("../DB/service-account.json")
 	app, err := firebase.NewApp(Ctx, nil, sa)
 	if err != nil {
 		fmt.Println(err)
