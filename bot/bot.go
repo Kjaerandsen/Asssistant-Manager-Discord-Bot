@@ -6,19 +6,20 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 /*
 	Discord bot identification variables
 */
 var (
-	Token string
-	BotPrefix = "@news"
+	Token      string
+	BotPrefix  = "@news"
 	FlagPrefix = "-"
 )
 
@@ -28,7 +29,7 @@ func init() {
 	flag.Parse()
 }
 
-func main(){
+func main() {
 	discord, err := discordgo.New("Bot " + Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
@@ -39,7 +40,6 @@ func main(){
 	discord.AddHandler(router)
 	// In this example, we only care about receiving message events.
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
-
 
 	// Open a websocket connection to Discord and begin listening.
 	err = discord.Open()
@@ -66,17 +66,17 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself,
 	// and anything that doesn't start with the prefix
-	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, BotPrefix){
+	if m.Author.ID == s.State.User.ID || !strings.HasPrefix(m.Content, BotPrefix) {
 		return
 	}
 
 	_, subRoute, route, flags, err := parseContent(m.Content)
-	if err != nil{
+	if err != nil {
 		s.ChannelMessageSend(m.ChannelID, err.Error())
 		return
 	}
 
-	switch route{
+	switch route {
 	case utils.Weather:
 		reply, err = services.HandleRouteToWeather(subRoute, flags)
 	case utils.News:
@@ -100,14 +100,14 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 
 	// Send reply
-	if err != nil {			// Error handling
+	if err != nil { // Error handling
 		s.ChannelMessageSend(m.ChannelID, err.Error())
-	} else {				// Result
+	} else { // Result
 		s.ChannelMessageSendEmbed(m.ChannelID, &reply)
 	}
 }
 
-func parseContent(content string)(string, string, string, map[string]string, error){
+func parseContent(content string) (string, string, string, map[string]string, error) {
 	// Variables
 	var prefix string
 	var subCommand string
@@ -116,12 +116,12 @@ func parseContent(content string)(string, string, string, map[string]string, err
 
 	// Split content
 	s := strings.Split(content, " ")
-	if len(s) < 3{
+	if len(s) < 3 {
 		return "", "", "", nil, errors.New("invalid command syntax")
 	}
 	prefix, subCommand, command = s[0], s[1], s[2]
 
-	if len(s) > 3{
+	if len(s) > 3 {
 		potentialFlags = s[3:]
 	}
 
@@ -129,9 +129,9 @@ func parseContent(content string)(string, string, string, map[string]string, err
 	var flags = make(map[string]string)
 	currentFlag := ""
 
-	if len(potentialFlags) != 0{
-		for _, element := range potentialFlags{
-			if strings.HasPrefix(element, FlagPrefix){
+	if len(potentialFlags) != 0 {
+		for _, element := range potentialFlags {
+			if strings.HasPrefix(element, FlagPrefix) {
 				if _, ok := flags[currentFlag]; ok {
 					flags[currentFlag] = strings.TrimSpace(flags[currentFlag])
 				}
