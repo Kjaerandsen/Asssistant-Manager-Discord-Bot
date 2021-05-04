@@ -26,3 +26,11 @@ func getAndDecodeURL(url string, decodedJSON interface{}) error {
 	//No errors, return nil
 	return nil
 }
+
+//DerefStringPointer receives a pointer to string variable and dereferences to string variable
+func DerefStringPointer(s *string) string {
+	if s != nil {
+		return *s
+	}
+	return ""
+}
