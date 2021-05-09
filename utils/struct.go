@@ -5,7 +5,7 @@ type Fridge struct {
 }
 
 //Recipe struct holds all data from the spoonacular API used to find recipes
-type Recipe struct {
+type Recipe []struct {
 	Name                 string           `json:"title"`
 	Image                string           `json:"image"`
 	MissedIngredients    []IngredientList `json:"missedIngredients"`   //Missing ingredients from
