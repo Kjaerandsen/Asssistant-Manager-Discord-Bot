@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -23,14 +24,24 @@ func HandleRouteToMeals(subRoute string, flags map[string]string) (discordgo.Mes
 			if err != nil {
 				return mealEmbed, err
 			}
-			mealEmbed.Title = recipes[0].Name
 
-			mealEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: recipes[0].Image}
-			description := "Missed ingredients:"
+			mealEmbed.Title = recipes[0].Name
+			// mealEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: recipes[0].Image}
+			mealEmbed.Image= &discordgo.MessageEmbedImage{URL: recipes[0].Image}
+			description := ""
 			for _, ingredients := range recipes[0].MissedIngredients {
-				description += ingredients.IngredientName + " "
+				description += strings.Title(ingredients.IngredientName) + "\n"
 			}
-			mealEmbed.Description = description
+
+			field := discordgo.MessageEmbedField{Name: "Missed ingredients:", Value: description}
+			fields := []*discordgo.MessageEmbedField{&field}
+
+			// Create footer
+			footer := discordgo.MessageEmbedFooter{Text: "Data provided by https://api.spoonacular.com"}
+
+			// Set footer and fields
+			mealEmbed.Fields = fields
+			mealEmbed.Footer = &footer
 
 			return mealEmbed, nil
 		}
@@ -67,7 +78,7 @@ func getRecipeFromFridge() (utils.Recipe, error) {
 	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + "milk" + "&number=1&apiKey=c7939a239ecd43c49c1654aff9d387d6"
 	var recipe utils.Recipe
 	//Use GetAndDecode function to decode it into recipe struct
-	err := dataRequests.GetAndDecodeURL(url, recipe)
+	err := dataRequests.GetAndDecodeURL(url, &recipe)
 
 	//Check if there was any errors in fetching and decoding the url
 	if err != nil {

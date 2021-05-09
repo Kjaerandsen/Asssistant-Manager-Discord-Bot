@@ -18,13 +18,13 @@ import (
 */
 var (
 	Token string
-	BotPrefix = "@news"
 	FlagPrefix = "-"
+	BotPrefix = "<@!834015714200649758>"
 )
 
 func init() {
 	Token = os.Getenv("BOT_TOKEN")
-	flag.StringVar(&Token, "t", "", "Bot Token")
+	//flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
 
