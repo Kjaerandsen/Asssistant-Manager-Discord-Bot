@@ -32,6 +32,21 @@ Fridge and cooking:
 * Get recipe based on ingredients in the fridge
 * Get recipe based on specified ingredients
 
+### Setup
+
+- Download the git repo.
+- Compile the program using go.
+- Create a discord bot with message and webhook rights and add it to your discord server.
+- Set the system env BOT_TOKEN to the discord bot's token.
+- Set up the database as shown under "Database setup" further down.
+- Run the program.
+
+#### Database setup: 
+This project uses google's firebase firestore as the database. First set up a firebase account and project.
+Go to project settings, under the "Service accounts" tab click "Generate new private key".
+Accept the prompt and download the json key file.  This file will be used by the application to connect to the database.
+Rename this file to "service-account.json" and move it to the DB folder of the git repo.
+
 ### Dependencies:
 
 Discordgo https://github.com/bwmarrin/discordgo
