@@ -193,26 +193,6 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	} else {
 		s.ChannelMessageSendEmbed(m.ChannelID, &reply)
 	}
-/*
-	switch reply. {
-		case discordgo.MessageEmbed:
-			message := reply.(discordgo.MessageEmbed)
-			s.ChannelMessageSendEmbed(m.ChannelID, &message)
-		case []discordgo.MessageEmbed:
-
-				replies := []ds.MessageEmbed{
-					{Title: "Mutli-page Embed Example", Description: "First Page", Fields: []*ds.MessageEmbedField{{Name: "Temperature", Value: "16C"},{Name: "Article", Value: "India reports highest daily coronavirus deaths"}, {Name: "Other", Value: "9382774"}}, Footer: &ds.MessageEmbedFooter{Text: "Data provided by datasource"}},
-					{Title: "Mutli-page Embed Example", Description: "Second Page", Fields: []*ds.MessageEmbedField{{Name: "Temperature", Value: "25C"},{Name: "Article", Value: "Night-time splashdown for four ISS astronauts"}, {Name: "Other", Value: "32905934"}}, Footer: &ds.MessageEmbedFooter{Text: "Data provided by datasource"}},
-					{Title: "Mutli-page Embed Example", Description: "Third Page", Fields: []*ds.MessageEmbedField{{Name: "Temperature", Value: "-12C"},{Name: "Article", Value: "The dogs that stayed in Chernobyl"}, {Name: "Other", Value: "0340043"}}, Footer: &ds.MessageEmbedFooter{Text: "Data provided by datasource"}},
-				}
-
-			//messages := reply.([]discordgo.MessageEmbed)
-			message, _ := s.ChannelMessageSendEmbed(m.ChannelID, &reply.([]discordgo.MessageEmbed)[0])
-			go spinReaction(message.ID, m.ChannelID, reply.([]discordgo.MessageEmbed), s)
-	default:
-			s.ChannelMessageSend(m.ChannelID, err.Error())
-	}
-	*/
 }
 
 func spinReaction(messageID string, channelID string, replies []discordgo.MessageEmbed, s *discordgo.Session,){
