@@ -26,7 +26,7 @@ var (
 
 func init() {
 	Token = os.Getenv("BOT_TOKEN")
-	//flag.StringVar(&Token, "t", "", "Bot Token")
+	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
 }
 
