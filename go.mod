@@ -3,6 +3,8 @@ module assistant
 go 1.16
 
 require (
+	cloud.google.com/go/firestore v1.5.0
+	firebase.google.com/go v3.13.0+incompatible
 	github.com/bwmarrin/discordgo v0.23.2
-	github.com/clinet/discordgo-embed v0.0.0-20190411043415-d754bc1a576c
+	google.golang.org/api v0.45.0
 )
