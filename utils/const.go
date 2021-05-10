@@ -18,30 +18,47 @@ const (
 	Subroute constants
 */
 const (
-	Get    = "get"
-	View   = "view"
-	Check  = "check"
-	Add    = "add"
-	Set    = "set"
-	Delete = "delete"
-	Remove = "remove"
-	Help   = "help"
+	Get			= "get"
+	View		= "view"
+	Check		= "check"
+	Add			= "add"
+	Set			= "set"
+	Delete		= "delete"
+	Remove		= "remove"
+	Help		= "help"
 )
 
 /*
 	Flag constants
 */
 const (
-	Location = "-location"
-	Units    = "-units"
+	Location 		= "location"
+	Units    		= "units"
+	FlagPrefix		= "flagPref"
+	BotPrefix		= "botPref"
+	Query			= "q"
+	Country			= "country"
+	Category		= "category"
+	Page			= "p"
+	Freshness		= "fresh"
+	Market			= "market"
+	Since			= "since"
+	SortBy			= "sort"
 )
 
 /*
-	Weather_forecast constnts
+	Weather_forecast constants
 */
 const (
 	WeatherAPI  = "http://api.openweathermap.org/data/2.5/weather?q="
 	APIKey      = "94aad1fbb7ae86f5de4cf9aafc51e2e2"
 	DefaultCity = "Gjøvik"
 	DefaultUnit = "Metric"
+)
+
+/*
+	API Key constants
+*/
+const (
+	NewsKey			= "d24e5c8886074fd18f3d305532291ae8"
 )
