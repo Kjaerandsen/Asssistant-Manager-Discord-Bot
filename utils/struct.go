@@ -1,5 +1,22 @@
 package utils
 
+type Fridge struct {
+	Ingredients []string
+}
+
+//Recipe struct holds all data from the spoonacular API used to find recipes
+type Recipe []struct {
+	Name                 string           `json:"title"`
+	Image                string           `json:"image"`
+	MissedIngredients    []IngredientList `json:"missedIngredients"`   //Missing ingredients from
+	UsedIngredientsCount int              `json:"usedIngredientCount"` //Amounts of Ingredients used
+	UsedIngredients      []IngredientList `json:"usedIngredients"`
+}
+
+type IngredientList struct {
+	IngredientName string `json:"name"`
+}
+
 // NewsAnswer This struct formats the answer provided by the Bing News Search API.
 type NewsAnswer struct {
 	ReadLink       string `json:"readLink"`

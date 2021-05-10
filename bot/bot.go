@@ -20,8 +20,8 @@ import (
 */
 var (
 	Token string
-	BotPrefix = "@news"
 	FlagPrefix = "-"
+	BotPrefix = "<@!834015714200649758>"
 )
 
 func init() {
