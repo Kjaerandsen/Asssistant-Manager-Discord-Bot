@@ -26,11 +26,28 @@ const (
 	Set			= "set"
 	Delete		= "delete"
 	Remove		= "remove"
+	Help		= "help"
 )
 
 /*
 	Flag constants
 */
 const (
+	FlagPrefix		= "flagPref"
+	BotPrefix		= "botPref"
+	Query			= "q"
+	Country			= "country"
+	Category		= "category"
+	Page			= "p"
+	Freshness		= "fresh"
+	Market			= "market"
+	Since			= "since"
+	SortBy			= "sort"
+)
 
+/*
+	API Key constants
+*/
+const (
+	NewsKey			= "d24e5c8886074fd18f3d305532291ae8"
 )
