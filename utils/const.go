@@ -1,18 +1,17 @@
 package utils
 
-
 /*
 	Route constants
- */
+*/
 const (
-	Reminders	= "reminders"
-	Weather		= "weather"
-	Config		= "config"
-	Bills		= "bills"
-	News		= "news"
-	MealPlan 	= "meals"
-	Diag		= "diag"
-	Settings	= "settings"
+	Reminders = "reminders"
+	Weather   = "weather"
+	Config    = "config"
+	Bills     = "bills"
+	News      = "news"
+	MealPlan  = "meals"
+	Diag      = "diag"
+	Settings  = "settings"
 )
 
 /*
@@ -33,6 +32,8 @@ const (
 	Flag constants
 */
 const (
+	Location 		= "location"
+	Units    		= "units"
 	FlagPrefix		= "flagPref"
 	BotPrefix		= "botPref"
 	Query			= "q"
@@ -43,6 +44,16 @@ const (
 	Market			= "market"
 	Since			= "since"
 	SortBy			= "sort"
+)
+
+/*
+	Weather_forecast constants
+*/
+const (
+	WeatherAPI  = "http://api.openweathermap.org/data/2.5/weather?q="
+	APIKey      = "94aad1fbb7ae86f5de4cf9aafc51e2e2"
+	DefaultCity = "Gjøvik"
+	DefaultUnit = "Metric"
 )
 
 /*
