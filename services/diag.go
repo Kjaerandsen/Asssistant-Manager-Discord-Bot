@@ -7,7 +7,7 @@ import (
 )
 
 func HandleRouteToDiag(subRoute string, flags map[string]string)(discordgo.MessageEmbed, error){
-	var diagEmbed discordgo.MessageEmbed
+	var diagEmbed = discordgo.MessageEmbed{}
 	switch subRoute{
 	case utils.View:
 		if len(flags) != 0{

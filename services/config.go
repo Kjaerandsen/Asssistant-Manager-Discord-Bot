@@ -7,7 +7,7 @@ import (
 )
 
 func HandleRouteToConfig(subRoute string, flags map[string]string)(discordgo.MessageEmbed, error){
-	var configEmbed discordgo.MessageEmbed
+	var configEmbed = discordgo.MessageEmbed{}
 	switch subRoute{
 	case utils.View:
 		if len(flags) != 0{

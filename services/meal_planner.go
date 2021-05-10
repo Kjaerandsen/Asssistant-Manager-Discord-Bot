@@ -7,7 +7,7 @@ import (
 )
 
 func HandleRouteToMeals(subRoute string, flags map[string]string)(discordgo.MessageEmbed, error){
-	var mealEmbed discordgo.MessageEmbed
+	var mealEmbed = discordgo.MessageEmbed{}
 	switch subRoute{
 	case utils.Get, utils.View, utils.Check:
 		if len(flags) != 0{

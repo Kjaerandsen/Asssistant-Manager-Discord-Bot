@@ -7,7 +7,7 @@ import (
 )
 
 func HandleRouteToReminder(subRoute string, flags map[string]string)(discordgo.MessageEmbed, error){
-	var reminderEmbed discordgo.MessageEmbed
+	var reminderEmbed = discordgo.MessageEmbed{}
 	switch subRoute{
 	case utils.Get, utils.View, utils.Check:
 		if len(flags) != 0{
