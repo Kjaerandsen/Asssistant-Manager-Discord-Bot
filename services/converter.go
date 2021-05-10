@@ -8,8 +8,8 @@ import (
 func HandleRouteToConverter(subRoute string, flags map[string]string)(discordgo.MessageEmbed, error){
 	var convertEmbed = discordgo.MessageEmbed{}
 	var type_ string
-	var to = flags["-to"]
-	var from = flags["-from"]
+	var to = flags["to"]
+	var from = flags["from"]
 
 	var to_value string
 	var from_value string
@@ -24,7 +24,7 @@ func HandleRouteToConverter(subRoute string, flags map[string]string)(discordgo.
 
 	case "unit":
 		type_ = "Unit"
-		to_value = flags["-value"]
+		to_value = flags["value"]
 
 
 	case "currency":

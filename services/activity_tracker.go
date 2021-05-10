@@ -19,13 +19,13 @@ func HandleRouteToReminder(subRoute string, flags map[string]string)(discordgo.M
 		if len(flags) != 0{
 			reminderEmbed.Title = "📌 Reminder"
 			reminderEmbed.Description = "I will remind "
-			if _, ok := flags["-users"]; !ok {
+			if _, ok := flags["users"]; !ok {
 				reminderEmbed.Description += "you "
 			} else {
 				reminderEmbed.Description += "mentioned users "
 			}
 
-			reminderEmbed.Description += "about \"" + flags["-message"] + "\" in " + flags["-time"] + "."
+			reminderEmbed.Description += "about \"" + flags["message"] + "\" in " + flags["time"] + "."
 
 
 			// Create footer

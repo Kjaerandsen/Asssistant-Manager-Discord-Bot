@@ -1,18 +1,18 @@
 package main
 
 import (
-	"assistant/DB"
 	"assistant/services"
 	"assistant/utils"
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
 	"strconv"
 	"strings"
 	"syscall"
-	"github.com/bwmarrin/discordgo"
+	"time"
 	clock "time"
 )
 
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Initiates the database connection
-	DB.DatabaseInit()
+	//DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
@@ -78,7 +78,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// TODO remove this, for testing purposes only
 	// m.Author.ID is a unique identifier for the user typing the message
-	DB.Test(m.Author.ID)
+	//DB.Test(m.Author.ID)
 
 	_, subRoute, route, flags, err := parseContent(m.Content)
 	if err != nil {
@@ -202,7 +202,7 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 	s.MessageReactionAdd(channelID, messageID, "❌")
 
 	var index = 0
-	for i := 0; i < 30000;{
+	for i := 0; i < 30000; {
 		/* Timeout Counter
 		go func(i *int){
 			for *i < 30 {
@@ -248,7 +248,6 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 	s.MessageReactionsRemoveAll(channelID, messageID)
 }
 
-
 func parseContent(content string)(string, string, string, map[string]string, error){
 	// Variables
 	var prefix string
@@ -258,12 +257,12 @@ func parseContent(content string)(string, string, string, map[string]string, err
 
 	// Split content
 	s := strings.Split(content, " ")
-	if len(s) < 3 {
+	if len(s) < 3{
 		return "", "", "", nil, errors.New("invalid command syntax")
 	}
 	prefix, subCommand, command = s[0], s[1], s[2]
 
-	if len(s) > 3 {
+	if len(s) > 3{
 		potentialFlags = s[3:]
 	}
 
@@ -272,8 +271,6 @@ func parseContent(content string)(string, string, string, map[string]string, err
 	currentFlag := ""
 
 	if len(potentialFlags) != 0 {
-		for _, element := range potentialFlags {
-			if strings.HasPrefix(element, FlagPrefix) {
 		for _, element := range potentialFlags{
 			if strings.HasPrefix(element, FlagPrefix){
 				if _, ok := flags[currentFlag]; ok {
@@ -289,3 +286,5 @@ func parseContent(content string)(string, string, string, map[string]string, err
 
 	return prefix, subCommand, command, flags, nil
 }
+
+
