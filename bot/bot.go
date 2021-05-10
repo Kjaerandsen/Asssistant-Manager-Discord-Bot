@@ -10,9 +10,10 @@ import (
 	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"syscall"
-	"time"
+	clock "time"
 )
 
 /*
@@ -93,6 +94,83 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		replies, err = services.HandleRouteToNews(subRoute, flags)
 	case utils.Reminders:
 		reply, err = services.HandleRouteToReminder(subRoute, flags)
+		if err != nil {			// Error handling
+			break
+		}
+		// Unsure where to put this, but I need to make a goroutine and get user info from inital message.
+		// Prase time to seconds
+		var time clock.Duration
+		split := strings.Split(flags["-time"], " ")
+		count, type_ := split[0], split[1]
+		var i int
+		i, err = strconv.Atoi(count)
+		if err != nil{
+			break
+		}
+
+		if type_ == "day" || type_ == "days" {
+			time = clock.Duration(i * 24 * 60 * 60) * clock.Second
+		} else if type_ == "hour" || type_ == "hours" {
+			time = clock.Duration(i * 60 * 60) * clock.Second
+		} else if type_ == "minute" || type_ == "minutes" {
+			time = clock.Duration(i * 60) * clock.Second
+		} else {
+			time = clock.Duration(i) * clock.Second
+		}
+
+		// Check for max value
+		if time >= 2592000 * clock.Second{
+			err = errors.New("time exceeds maximum of 30 days")
+			break
+		}
+
+		// Get users
+		var users []*discordgo.User
+		if _, ok := flags["-users"]; !ok {
+			users = append(users, m.Author)
+		} else {
+			users = m.Mentions
+		}
+
+		// Get channel
+		var channel *discordgo.Channel
+		if _, ok := flags["-channel"]; !ok {
+			channel, _ = s.Channel(m.ChannelID)
+		} else {
+			channel = func(str string)*discordgo.Channel{
+				str = strings.TrimPrefix(str, "<")
+				str = strings.TrimPrefix(str, "#")
+				str = strings.TrimSuffix(str, ">")
+				channel, _ := s.Channel(str)
+				return channel
+			}(flags["-channel"])
+		}
+
+		// Create coroutine and make it wait
+		go func(time clock.Duration, channel *discordgo.Channel, users []*discordgo.User) {
+			clock.Sleep(time)
+			reply.Description = flags["-message"]
+
+			var mentions string
+			for _, user := range users{
+				mentions += " " + user.Mention()
+			}
+
+		if channel.ID != m.ChannelID{
+			// Send in specified channel
+			s.ChannelMessageSend(channel.ID, mentions)
+			s.ChannelMessageSendEmbed(channel.ID, &reply)
+		}else if users[0] == m.Author{
+			// Send in DM channel
+			dmchannel, _ := s.UserChannelCreate(users[0].ID)
+			s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
+		} else {
+			// Send in default channel
+			s.ChannelMessageSend(channel.ID, mentions)
+			s.ChannelMessageSendEmbed(channel.ID, &reply)
+		}
+		}(time, channel, users)
+
 	case utils.Bills:
 		reply, err = services.HandleRouteToBills(subRoute, flags)
 	case utils.MealPlan:
