@@ -1,6 +1,7 @@
 package main
 
 import (
+	"assistant/DB"
 	"assistant/services"
 	"assistant/utils"
 	"errors"
@@ -40,7 +41,7 @@ func main() {
 	}
 
 	// Initiates the database connection
-	// DB.DatabaseInit()
+	DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
@@ -89,7 +90,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	switch route {
 	case utils.Weather:
-		reply, err = services.HandleRouteToWeather(subRoute, flags)
+		reply, err = services.HandleRouteToWeather(subRoute, flags, m.Author.ID)
 	case utils.News:
 		replies, err = services.HandleRouteToNews(subRoute, flags)
 	case utils.Reminders:

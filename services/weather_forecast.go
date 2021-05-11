@@ -1,6 +1,7 @@
 package services
 
 import (
+	"assistant/DB"
 	"assistant/utils"
 	"encoding/json"
 	"fmt"
@@ -13,7 +14,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HandleRouteToWeather(subRoute string, flags map[string]string) (discordgo.MessageEmbed, error) {
+func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) (discordgo.MessageEmbed, error) {
 	var weatherEmbed = discordgo.MessageEmbed{}
 
 	unitsOfMeasurement := make(map[string][3]string)
@@ -67,11 +68,20 @@ func HandleRouteToWeather(subRoute string, flags map[string]string) (discordgo.M
 			return weatherEmbed, nil
 
 		} else {
+			var currentWeather utils.WeatherStruct
+			var location string
 
 			//default response if no flag is given
-			currentWeather := getWeather(utils.DefaultCity, utils.DefaultUnit)
+			data := DB.RetrieveFromDatabase("weather", uid)
+			// Checks if the default location is set, if not default to the defaultcity of the program
+			if data["location"] == nil{
+				location = utils.DefaultCity
+			} else {
+				location = data["location"].(string)
+			}
 
-			weatherEmbed.Title = "Weather forecast for " + utils.DefaultCity
+			currentWeather = getWeather(location, utils.DefaultUnit)
+			weatherEmbed.Title = "Weather forecast for " + location
 			weatherEmbed.Description = currentWeather.Weather[0].Description
 
 			// Create fields
@@ -100,6 +110,27 @@ func HandleRouteToWeather(subRoute string, flags map[string]string) (discordgo.M
 		fields := []*discordgo.MessageEmbedField{&location, &units}
 		weatherEmbed.Fields = fields
 		return weatherEmbed, nil
+	case utils.Set:
+		// Get the city from the command
+		if len(flags) != 0 {
+			if city, ok := flags[utils.Location]; ok {
+				currentCity = city
+			}
+
+			// Make the data structure and include the city
+			data := make(map[string]interface{})
+			data["location"] = currentCity
+			// Add it to the database
+			DB.AddToDatabase("weather", uid, data)
+
+			weatherEmbed.Title = "Weather location update"
+			weatherEmbed.Description = "New default weather location set"
+			return weatherEmbed, nil
+		} else {
+			weatherEmbed.Title = "Something went wrong"
+			weatherEmbed.Description = "No location specified when setting default weather location"
+			return weatherEmbed, nil
+		}
 	default:
 		// Error embed passed
 		weatherEmbed.Title = "Something went wrong"
