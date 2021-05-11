@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o bot
 
 FROM scratch
 
-#ENV BOT_TOKEN=ODM1NDcxODgxOTY0MjI0NTEz.YIP70g.Pj7Shx_nZprANAliX46VdvpLYfU
+ENV BOT_TOKEN=ODM0MDE1NzE0MjAwNjQ5NzU4.YH6vqQ.XyxiV8tp0sQqDNkSBW5bT6Wobmg
 
 WORKDIR /
 

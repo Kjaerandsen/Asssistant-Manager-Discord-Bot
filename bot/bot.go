@@ -29,6 +29,7 @@ func init() {
 	Token = os.Getenv("BOT_TOKEN")
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
+	Token = os.Getenv("BOT_TOKEN")
 }
 
 func main() {
@@ -39,7 +40,7 @@ func main() {
 	}
 
 	// Initiates the database connection
-	//DB.DatabaseInit()
+	// DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
