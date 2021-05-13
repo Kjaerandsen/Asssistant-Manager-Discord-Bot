@@ -1,13 +1,11 @@
 package main
 
 import (
-	"assistant/DB"
 	"assistant/services"
 	"assistant/utils"
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
 	"strconv"
@@ -15,15 +13,17 @@ import (
 	"syscall"
 	"time"
 	clock "time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 /*
 	Discord bot identification variables
 */
 var (
-	Token string
+	Token      string
 	FlagPrefix = "-"
-	BotPrefix = "@news"
+	BotPrefix  = "@news"
 )
 
 func init() {
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	// Initiates the database connection
-	DB.DatabaseInit()
+	//DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
@@ -95,7 +95,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		replies, err = services.HandleRouteToNews(subRoute, flags)
 	case utils.Reminders:
 		reply, err = services.HandleRouteToReminder(subRoute, flags)
-		if err != nil {			// Error handling
+		if err != nil { // Error handling
 			break
 		}
 		// Unsure where to put this, but I need to make a goroutine and get user info from inital message.
@@ -105,22 +105,22 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		count, type_ := split[0], split[1]
 		var i int
 		i, err = strconv.Atoi(count)
-		if err != nil{
+		if err != nil {
 			break
 		}
 
 		if type_ == "day" || type_ == "days" {
-			time = clock.Duration(i * 24 * 60 * 60) * clock.Second
+			time = clock.Duration(i*24*60*60) * clock.Second
 		} else if type_ == "hour" || type_ == "hours" {
-			time = clock.Duration(i * 60 * 60) * clock.Second
+			time = clock.Duration(i*60*60) * clock.Second
 		} else if type_ == "minute" || type_ == "minutes" {
-			time = clock.Duration(i * 60) * clock.Second
+			time = clock.Duration(i*60) * clock.Second
 		} else {
 			time = clock.Duration(i) * clock.Second
 		}
 
 		// Check for max value
-		if time >= 2592000 * clock.Second{
+		if time >= 2592000*clock.Second {
 			err = errors.New("time exceeds maximum of 30 days")
 			break
 		}
@@ -138,7 +138,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if _, ok := flags["-channel"]; !ok {
 			channel, _ = s.Channel(m.ChannelID)
 		} else {
-			channel = func(str string)*discordgo.Channel{
+			channel = func(str string) *discordgo.Channel {
 				str = strings.TrimPrefix(str, "<")
 				str = strings.TrimPrefix(str, "#")
 				str = strings.TrimSuffix(str, ">")
@@ -153,29 +153,29 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 			reply.Description = flags["-message"]
 
 			var mentions string
-			for _, user := range users{
+			for _, user := range users {
 				mentions += " " + user.Mention()
 			}
 
-		if channel.ID != m.ChannelID{
-			// Send in specified channel
-			s.ChannelMessageSend(channel.ID, mentions)
-			s.ChannelMessageSendEmbed(channel.ID, &reply)
-		}else if users[0] == m.Author{
-			// Send in DM channel
-			dmchannel, _ := s.UserChannelCreate(users[0].ID)
-			s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
-		} else {
-			// Send in default channel
-			s.ChannelMessageSend(channel.ID, mentions)
-			s.ChannelMessageSendEmbed(channel.ID, &reply)
-		}
+			if channel.ID != m.ChannelID {
+				// Send in specified channel
+				s.ChannelMessageSend(channel.ID, mentions)
+				s.ChannelMessageSendEmbed(channel.ID, &reply)
+			} else if users[0] == m.Author {
+				// Send in DM channel
+				dmchannel, _ := s.UserChannelCreate(users[0].ID)
+				s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
+			} else {
+				// Send in default channel
+				s.ChannelMessageSend(channel.ID, mentions)
+				s.ChannelMessageSendEmbed(channel.ID, &reply)
+			}
 		}(time, channel, users)
 
 	case utils.Bills:
 		reply, err = services.HandleRouteToBills(subRoute, flags)
 	case utils.MealPlan:
-		reply, err = services.HandleRouteToMeals(subRoute, flags)
+		replies, err = services.HandleRouteToMeals(subRoute, flags)
 	case utils.Config:
 		reply, err = services.HandleRouteToConfig(subRoute, flags)
 	case utils.Diag:
@@ -197,7 +197,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 }
 
-func spinReaction(messageID string, channelID string, replies []discordgo.MessageEmbed, s *discordgo.Session,){
+func spinReaction(messageID string, channelID string, replies []discordgo.MessageEmbed, s *discordgo.Session) {
 	// Add reactions
 	s.MessageReactionAdd(channelID, messageID, "◀")
 	s.MessageReactionAdd(channelID, messageID, "▶")
@@ -213,10 +213,10 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 		}(&i)
 		*/
 
-		if users, _ := s.MessageReactions(channelID, messageID, "◀", 2, "", ""); len(users) > 1{ // "◀"
+		if users, _ := s.MessageReactions(channelID, messageID, "◀", 2, "", ""); len(users) > 1 { // "◀"
 			index -= 1
 
-			if index < 0{
+			if index < 0 {
 				index = len(replies) - 1
 			}
 
@@ -225,10 +225,10 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 
 			// Reset counter
 			i = 0
-		} else if users, _ := s.MessageReactions(channelID, messageID, "▶", 2, "", ""); len(users) > 1{ // "▶"
+		} else if users, _ := s.MessageReactions(channelID, messageID, "▶", 2, "", ""); len(users) > 1 { // "▶"
 			index += 1
 
-			if index >= len(replies){
+			if index >= len(replies) {
 				index = 0
 			}
 
@@ -237,7 +237,7 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 
 			// Reset counter
 			i = 0
-		} else if users, _ := s.MessageReactions(channelID, messageID, "❌", 2, "", ""); len(users) > 1{ // "❌"
+		} else if users, _ := s.MessageReactions(channelID, messageID, "❌", 2, "", ""); len(users) > 1 { // "❌"
 			s.MessageReactionsRemoveAll(channelID, messageID)
 			break
 		}
@@ -250,7 +250,7 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 	s.MessageReactionsRemoveAll(channelID, messageID)
 }
 
-func parseContent(content string)(string, string, string, map[string]string, error){
+func parseContent(content string) (string, string, string, map[string]string, error) {
 	// Variables
 	var prefix string
 	var subCommand string
@@ -259,12 +259,12 @@ func parseContent(content string)(string, string, string, map[string]string, err
 
 	// Split content
 	s := strings.Split(content, " ")
-	if len(s) < 3{
+	if len(s) < 3 {
 		return "", "", "", nil, errors.New("invalid command syntax")
 	}
 	prefix, subCommand, command = s[0], s[1], s[2]
 
-	if len(s) > 3{
+	if len(s) > 3 {
 		potentialFlags = s[3:]
 	}
 
@@ -273,8 +273,8 @@ func parseContent(content string)(string, string, string, map[string]string, err
 	currentFlag := ""
 
 	if len(potentialFlags) != 0 {
-		for _, element := range potentialFlags{
-			if strings.HasPrefix(element, FlagPrefix){
+		for _, element := range potentialFlags {
+			if strings.HasPrefix(element, FlagPrefix) {
 				if _, ok := flags[currentFlag]; ok {
 					flags[currentFlag] = strings.TrimSpace(flags[currentFlag])
 				}
@@ -288,5 +288,3 @@ func parseContent(content string)(string, string, string, map[string]string, err
 
 	return prefix, subCommand, command, flags, nil
 }
-
-

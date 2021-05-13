@@ -3,17 +3,15 @@ package services
 import (
 	dataRequests "assistant/DataRequests"
 	"assistant/utils"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func HandleRouteToMeals(subRoute string, flags map[string]string) (discordgo.MessageEmbed, error) {
-	var mealEmbed = discordgo.MessageEmbed{}
+func HandleRouteToMeals(subRoute string, flags map[string]string) ([]discordgo.MessageEmbed, error) {
+	var mealEmbed = []discordgo.MessageEmbed{}
 
 	switch subRoute {
 	case utils.Get, utils.View, utils.Check:
@@ -24,26 +22,7 @@ func HandleRouteToMeals(subRoute string, flags map[string]string) (discordgo.Mes
 			if err != nil {
 				return mealEmbed, err
 			}
-
-			mealEmbed.Title = recipes[0].Name
-			// mealEmbed.Thumbnail = &discordgo.MessageEmbedThumbnail{URL: recipes[0].Image}
-			mealEmbed.Image= &discordgo.MessageEmbedImage{URL: recipes[0].Image}
-			description := ""
-			for _, ingredients := range recipes[0].MissedIngredients {
-				description += strings.Title(ingredients.IngredientName) + "\n"
-			}
-
-			field := discordgo.MessageEmbedField{Name: "Missed ingredients:", Value: description}
-			fields := []*discordgo.MessageEmbedField{&field}
-
-			// Create footer
-			footer := discordgo.MessageEmbedFooter{Text: "Data provided by https://api.spoonacular.com"}
-
-			// Set footer and fields
-			mealEmbed.Fields = fields
-			mealEmbed.Footer = &footer
-
-			return mealEmbed, nil
+			return createRecipeMessages(recipes), nil
 		}
 	case utils.Add, utils.Set:
 		if len(flags) != 0 {
@@ -75,16 +54,50 @@ func getRecipeFromFridge() (utils.Recipe, error) {
 		ingredientString += ingredient + ","
 	}
 	//Create url and recipe struct for holding data
-	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + "milk" + "&number=1&apiKey=c7939a239ecd43c49c1654aff9d387d6"
+	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + "chicken, pork, beef, apple, pineapple" + "&number=5&apiKey=c7939a239ecd43c49c1654aff9d387d6"
 	var recipe utils.Recipe
 	//Use GetAndDecode function to decode it into recipe struct
 	err := dataRequests.GetAndDecodeURL(url, &recipe)
 
 	//Check if there was any errors in fetching and decoding the url
 	if err != nil {
+		fmt.Println("Hei fra getrecipe")
 		return utils.Recipe{}, err
 	}
 	return recipe, nil
+}
+
+func createRecipeMessages(recipes utils.Recipe) []discordgo.MessageEmbed {
+	var messageArray []discordgo.MessageEmbed
+	for _, recipe := range recipes {
+		recipeMessage := discordgo.MessageEmbed{}
+		recipeMessage.Title = recipe.Name
+		recipeMessage.Image = &discordgo.MessageEmbedImage{URL: recipe.Image}
+
+		var missedIngredients, usedIngredients string
+		for _, ingredients := range recipe.MissedIngredients {
+			missedIngredients += strings.Title(ingredients.IngredientName) + "\n"
+		}
+		//Embed missed ingredients
+		fieldMissed := discordgo.MessageEmbedField{Name: "Missed ingredients: ", Value: missedIngredients}
+		fields := []*discordgo.MessageEmbedField{&fieldMissed}
+		if recipe.UsedIngredientsCount > 0 {
+			for _, ingredients := range recipe.UsedIngredients {
+				usedIngredients += strings.Title(ingredients.IngredientName)
+			}
+			fieldUsed := discordgo.MessageEmbedField{Name: "Used Ingredients: ", Value: usedIngredients}
+			fields = append(fields, &fieldUsed)
+		}
+
+		// Create footer
+		footer := discordgo.MessageEmbedFooter{Text: "Data provided by https://api.spoonacular.com"}
+
+		// Set footer and fields
+		recipeMessage.Fields = fields
+		recipeMessage.Footer = &footer
+		messageArray = append(messageArray, recipeMessage)
+	}
+	return messageArray
 }
 
 //createTestFridge returns a fridge with some ingredients
@@ -92,16 +105,4 @@ func createTestFridge() utils.Fridge {
 	var fridge utils.Fridge
 	fridge.Ingredients = append(fridge.Ingredients, "Apple", "Milk", "Chicken", "Butter")
 	return fridge
-}
-
-func decodemystuff() (utils.Recipe, error) {
-	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + "milk" + "&number=1&apiKey=c7939a239ecd43c49c1654aff9d387d6"
-	response, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Oh no")
-	}
-	var recipe utils.Recipe
-	json.NewDecoder(response.Body).Decode(&recipe)
-	fmt.Println(recipe[0], response.StatusCode)
-	return recipe, nil
 }
