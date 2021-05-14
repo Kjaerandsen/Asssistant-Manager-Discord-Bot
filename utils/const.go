@@ -18,33 +18,33 @@ const (
 	Subroute constants
 */
 const (
-	Get			= "get"
-	View		= "view"
-	Check		= "check"
-	Add			= "add"
-	Set			= "set"
-	Delete		= "delete"
-	Remove		= "remove"
-	Help		= "help"
+	Get    = "get"
+	View   = "view"
+	Check  = "check"
+	Add    = "add"
+	Set    = "set"
+	Delete = "delete"
+	Remove = "remove"
+	Help   = "help"
 )
 
 /*
 	Flag constants
 */
 const (
-	Location 		= "location"
-	Units    		= "units"
-	Ingredient		= "ingredient"
-	FlagPrefix		= "flagPref"
-	BotPrefix		= "botPref"
-	Query			= "q"
-	Country			= "country"
-	Category		= "category"
-	Page			= "p"
-	Freshness		= "fresh"
-	Market			= "market"
-	Since			= "since"
-	SortBy			= "sort"
+	Location   = "location"
+	Units      = "units"
+	Ingredient = "ingredient"
+	FlagPrefix = "flagPref"
+	BotPrefix  = "botPref"
+	Query      = "q"
+	Country    = "country"
+	Category   = "category"
+	Page       = "p"
+	Freshness  = "fresh"
+	Market     = "market"
+	Since      = "since"
+	SortBy     = "sort"
 )
 
 /*
@@ -61,5 +61,14 @@ const (
 	API Key constants
 */
 const (
-	NewsKey			= "d24e5c8886074fd18f3d305532291ae8"
+	NewsKey = "d24e5c8886074fd18f3d305532291ae8"
+)
+
+/*
+	MealPlanner constants
+*/
+
+const (
+	MealPlannerAPI = "https://api.spoonacular.com"
+	MealKey        = "c7939a239ecd43c49c1654aff9d387d6"
 )

@@ -31,7 +31,7 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 			if ingredient, ok := flags[utils.Ingredient]; ok {
 				addToFridge(ingredient, uid)
 				var info = discordgo.MessageEmbed{}
-				info.Title  = "Added ingredient " + ingredient
+				info.Title = "Added ingredient " + ingredient
 				mealEmbed = append(mealEmbed, info)
 				return mealEmbed, nil
 			}
@@ -44,7 +44,7 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 			if ingredient, ok := flags[utils.Ingredient]; ok {
 				removeFromFridge(ingredient, uid)
 				var info = discordgo.MessageEmbed{}
-				info.Title  = "Removed ingredient " + ingredient
+				info.Title = "Removed ingredient " + ingredient
 				mealEmbed = append(mealEmbed, info)
 				return mealEmbed, nil
 			}
@@ -73,8 +73,9 @@ func getRecipeFromFridge(uid string) (utils.Recipe, error) {
 	for _, ingredient := range fridge.Ingredients {
 		ingredientString += ingredient + ","
 	}
+	number := "5"
 	//Create url and recipe struct for holding data
-	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + "chicken, pork, beef, apple, pineapple" + "&number=5&apiKey=c7939a239ecd43c49c1654aff9d387d6"
+	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + ingredientString + "&number=" + number + "&apiKey=" + utils.MealKey
 	var recipe utils.Recipe
 	//Use GetAndDecode function to decode it into recipe struct
 	err := dataRequests.GetAndDecodeURL(url, &recipe)
@@ -110,7 +111,7 @@ func createRecipeMessages(recipes utils.Recipe) []discordgo.MessageEmbed {
 		}
 
 		// Create footer
-		footer := discordgo.MessageEmbedFooter{Text: "Data provided by https://api.spoonacular.com"}
+		footer := discordgo.MessageEmbedFooter{Text: "Data provided by"}
 
 		// Set footer and fields
 		recipeMessage.Fields = fields
@@ -138,7 +139,7 @@ func retrieveFridge(uid string) map[string]interface{} {
 }
 
 // retrieveFridgeIngredients Retrieves the ingredients in the format required for recipe searching
-func retrieveFridgeIngredients(uid string) utils.Fridge{
+func retrieveFridgeIngredients(uid string) utils.Fridge {
 	// Output variable
 	var fridgeIngredients utils.Fridge
 	// Retrieve the fridge from the database
@@ -159,7 +160,7 @@ func addToFridge(ingredient string, uid string) {
 	// Add the ingredient to the fridge
 	fridge[ingredient] = "1"
 	// Send the updated fridge to the database
-	DB.AddToDatabase("fridge",uid,fridge)
+	DB.AddToDatabase("fridge", uid, fridge)
 
 	return
 }
@@ -171,7 +172,33 @@ func removeFromFridge(ingredient string, uid string) {
 	// Remove the ingredient
 	delete(fridge, ingredient)
 	// Send the updated fridge to the database
-	DB.AddToDatabase("fridge",uid,fridge)
+	DB.AddToDatabase("fridge", uid, fridge)
 
 	return
 }
+
+/*
+func createViewMessage(uid string) []discordgo.MessageEmbed {
+	fridge := retrieveFridge(uid)
+	//fridge := createTestFridge()
+
+	var messageList []discordgo.MessageEmbed
+	var message discordgo.MessageEmbed
+
+	//Create message
+	message.Title = "Your Fridge"
+
+	var ingredients string
+	for _, ingredient := range fridge.Ingredients {
+		ingredients += ingredient + "\n"
+	}
+	if len(fridge.Ingredients) < 1 {ingredients = "There are no ingredients stored in your fridge"}
+	//Embed missed ingredients
+	fridgeContent := discordgo.MessageEmbedField{Name: "Ingredients: ", Value: ingredients}
+	fields := []*discordgo.MessageEmbedField{&fridgeContent}
+
+	message.Fields = fields
+	messageList = append(messageList, message)
+	return []discordgo.MessageEmbed{}
+}
+*/
