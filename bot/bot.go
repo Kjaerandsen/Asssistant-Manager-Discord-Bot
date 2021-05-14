@@ -102,7 +102,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil { // Error handling
 			break
 		}
-		// Unsure where to put this, but I need to make a goroutine and get user info from initial message.
+
 		// Prase time to seconds
 		var time clock.Duration
 		split := strings.Split(flags["-time"], " ")
@@ -151,9 +151,14 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}(flags["-channel"])
 		}
 
+		// Add reminder to database
+
 		// Create coroutine and make it wait
 		go func(time clock.Duration, channel *discordgo.Channel, users []*discordgo.User) {
 			clock.Sleep(time)
+
+			// Check if the reminder is still in the database
+
 			reply.Description = flags["-message"]
 
 			var mentions string
