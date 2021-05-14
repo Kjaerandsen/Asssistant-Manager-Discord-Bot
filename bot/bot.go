@@ -35,6 +35,7 @@ func init() {
 
 func main() {
 	discord, err := discordgo.New("Bot " + Token)
+
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
 		return
@@ -45,7 +46,6 @@ func main() {
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
-	// In this example, we only care about receiving message events.
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
 
 	// Open a websocket connection to Discord and begin listening.
@@ -68,6 +68,8 @@ func main() {
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
 func router(s *discordgo.Session, m *discordgo.MessageCreate) {
+
+
 	var reply discordgo.MessageEmbed
 	var replies []discordgo.MessageEmbed
 	var err error
@@ -78,6 +80,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
+	s.ChannelMessageDelete(m.ChannelID, m.ID)
 	// TODO remove this, for testing purposes only
 	// m.Author.ID is a unique identifier for the user typing the message
 	//DB.Test(m.Author.ID)
@@ -189,10 +192,16 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Send reply
 	if err != nil {
-		s.ChannelMessageSend(m.ChannelID, err.Error())
+		message, _ := s.ChannelMessageSend(m.ChannelID, err.Error())
+		go func(messageID string, s *discordgo.Session){
+			time.Sleep(1 * time.Second)
+			err := s.ChannelMessageDelete(m.ChannelID, messageID)
+			fmt.Print(err)
+		}(message.ID, s)
 	} else if len(replies) > 0 {
 		message, _ := s.ChannelMessageSendEmbed(m.ChannelID, &replies[0])
 		go spinReaction(message.ID, m.ChannelID, replies, s)
+		s.MessageReactionsRemoveAll(m.ChannelID, message.ID)
 	} else {
 		s.ChannelMessageSendEmbed(m.ChannelID, &reply)
 	}
@@ -246,9 +255,6 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 		time.Sleep(1 * time.Second)
 		i += 1
 	}
-
-	// Done waiting, remove all reactions
-	s.MessageReactionsRemoveAll(channelID, messageID)
 }
 
 func parseContent(content string) (string, string, string, map[string]string, error) {
