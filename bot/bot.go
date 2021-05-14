@@ -23,7 +23,7 @@ import (
 var (
 	Token      string
 	FlagPrefix = "-"
-	BotPrefix  = "@news"
+	BotPrefix  = "<@!834015714200649758>"
 )
 
 func init() {
@@ -171,7 +171,6 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 				s.ChannelMessageSendEmbed(channel.ID, &reply)
 			}
 		}(time, channel, users)
-
 	case utils.Bills:
 		reply, err = services.HandleRouteToBills(subRoute, flags)
 	case utils.MealPlan:
@@ -182,6 +181,8 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		reply, err = services.HandleRouteToDiag(subRoute, flags)
 	case utils.Settings:
 		reply, err = services.HandleRouteToSettings(subRoute, &BotPrefix, &FlagPrefix, flags)
+	case utils.Help:
+		replies, err = services.HandleRouteToHelper(subRoute, flags)
 	default:
 		s.ChannelMessageSend(m.ChannelID, "command not recognized")
 	}

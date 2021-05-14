@@ -102,13 +102,7 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			return weatherEmbed, nil
 		}
 	case utils.Help:
-		weatherEmbed.Title = "Weather help"
-		weatherEmbed.Description = "Available commands"
-		// Create fields
-		location := discordgo.MessageEmbedField{Name: "-location", Value: "Parameter: 'city name', example: -location Oslo, Default city: " + utils.DefaultCity}
-		units := discordgo.MessageEmbedField{Name: "-units", Value: "Parameter: 'system of measurement', available systems: Metric, Imperial and SI, example: get weather -units Imperial" + utils.DefaultUnit}
-		fields := []*discordgo.MessageEmbedField{&location, &units}
-		weatherEmbed.Fields = fields
+		weatherEmbed = utils.WeatherHelper()
 		return weatherEmbed, nil
 	case utils.Set:
 		// Get the city from the command
