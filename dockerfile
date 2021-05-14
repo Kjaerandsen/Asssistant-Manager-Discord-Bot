@@ -16,5 +16,6 @@ ENV BOT_TOKEN=ODM0MDE1NzE0MjAwNjQ5NzU4.YH6vqQ.XyxiV8tp0sQqDNkSBW5bT6Wobmg
 WORKDIR /
 
 COPY --from=builder / .
+RUN mv /bot/bot /main
 
-CMD ["/bot/bot"]
+CMD ["/main"]
