@@ -32,6 +32,16 @@ Fridge and cooking:
 * Get recipe based on ingredients in the fridge
 * Get recipe based on specified ingredients
 
+# Adding the bot to your own server
+
+The requirements for you to add the bot to the server is that you have **Manage Server** privileges on the server. 
+
+Follow this [link](https://discord.com/api/oauth2/authorize?client_id=834015714200649758&permissions=8&scope=bot), you might need to log in to your discord account before the interface shows up. Once logged in, it will ask to connect to your server, scroll through the list of servers under _add server_ and pick the server you want to add the bot in. 
+
+To add the bot to several servers, simply repeat this process for every server.
+
+# Running it on your own computer
+
 ### Setup
 
 - Download the git repo.
