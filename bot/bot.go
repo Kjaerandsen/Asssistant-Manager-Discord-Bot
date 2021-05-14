@@ -31,7 +31,7 @@ func init() {
 	Token = os.Getenv("BOT_TOKEN")
 	flag.StringVar(&Token, "t", "", "Bot Token")
 	flag.Parse()
-	Token = os.Getenv("BOT_TOKEN")
+	//Token = os.Getenv("BOT_TOKEN")
 }
 
 func main() {
@@ -69,7 +69,6 @@ func main() {
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
 func router(s *discordgo.Session, m *discordgo.MessageCreate) {
-
 
 	var reply discordgo.MessageEmbed
 	var replies []discordgo.MessageEmbed
@@ -194,7 +193,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// Send reply
 	if err != nil {
 		message, _ := s.ChannelMessageSend(m.ChannelID, err.Error())
-		go func(messageID string, s *discordgo.Session){
+		go func(messageID string, s *discordgo.Session) {
 			time.Sleep(1 * time.Second)
 			err := s.ChannelMessageDelete(m.ChannelID, messageID)
 			fmt.Print(err)

@@ -9,12 +9,15 @@ import (
 	"strings"
 )
 
-func HandleRouteToBills(subRoute string, flags map[string]string, uid string)(discordgo.MessageEmbed, error){
+func HandleRouteToBills(subRoute string, flags map[string]string, uid string) (discordgo.MessageEmbed, error) {
 	var billsEmbed = discordgo.MessageEmbed{}
 	switch subRoute {
 	case utils.Get, utils.View, utils.Check:
 		// Get the bills
-		bills := DB.RetrieveFromDatabase("bills", uid)
+		bills, err := DB.RetrieveFromDatabase("bills", uid)
+		if err != nil {
+			return billsEmbed, err
+		}
 		// Set the title
 		billsEmbed.Title = "Bills:"
 		// Add the bills to the embed
@@ -28,7 +31,7 @@ func HandleRouteToBills(subRoute string, flags map[string]string, uid string)(di
 		if len(flags) != 0 {
 			if name, ok := flags[utils.Name]; ok {
 				if value, ok := flags[utils.Value]; ok {
-					billAdd(uid,strings.TrimSpace(name),value)
+					billAdd(uid, strings.TrimSpace(name), value)
 					billsEmbed.Title = "Bill added"
 					billsEmbed.Description = "Name: " + name + ", value: " + value
 					return billsEmbed, nil
@@ -43,7 +46,7 @@ func HandleRouteToBills(subRoute string, flags map[string]string, uid string)(di
 	case utils.Delete, utils.Remove:
 		if len(flags) != 0 {
 			if name, ok := flags[utils.Name]; ok {
-				billRemove(uid,strings.TrimSpace(name))
+				billRemove(uid, strings.TrimSpace(name))
 				billsEmbed.Title = "Bill Removed"
 				billsEmbed.Description = "Name: " + name
 				return billsEmbed, nil
@@ -60,7 +63,10 @@ func HandleRouteToBills(subRoute string, flags map[string]string, uid string)(di
 // billAdd Add a bill to the database
 func billAdd(uid string, bill string, value string) {
 	// Retrieve the already existing bills
-	bills := DB.RetrieveFromDatabase("bills", uid)
+	bills, err := DB.RetrieveFromDatabase("bills", uid)
+	if err != nil {
+		return
+	}
 	// Add the new bill
 	bills[bill] = value
 	// Send the update to the database
@@ -72,7 +78,10 @@ func billAdd(uid string, bill string, value string) {
 // billRemove Remove a bill from the database if it exists
 func billRemove(uid string, name string) {
 	// Retrieve the bills from the database
-	bills := DB.RetrieveFromDatabase("bills", uid)
+	bills, err := DB.RetrieveFromDatabase("bills", uid)
+	if err != nil {
+		return
+	}
 	// Remove the bill
 	delete(bills, name)
 	// Update the database entry

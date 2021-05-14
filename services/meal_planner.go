@@ -15,7 +15,9 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 	var mealEmbed = []discordgo.MessageEmbed{}
 
 	switch subRoute {
-	case utils.Get, utils.View, utils.Check:
+	case utils.View:
+		return createViewMessage(uid)
+	case utils.Get, utils.Check:
 		if len(flags) != 0 {
 			return mealEmbed, nil
 		} else {
@@ -29,7 +31,10 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 	case utils.Add, utils.Set:
 		if len(flags) != 0 {
 			if ingredient, ok := flags[utils.Ingredient]; ok {
-				addToFridge(ingredient, uid)
+				err := addToFridge(ingredient, uid)
+				if err != nil {
+					return mealEmbed, err
+				}
 				var info = discordgo.MessageEmbed{}
 				info.Title = "Added ingredient " + ingredient
 				mealEmbed = append(mealEmbed, info)
@@ -42,7 +47,10 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 	case utils.Delete, utils.Remove:
 		if len(flags) != 0 {
 			if ingredient, ok := flags[utils.Ingredient]; ok {
-				removeFromFridge(ingredient, uid)
+				err := removeFromFridge(ingredient, uid)
+				if err != nil {
+					return mealEmbed, err
+				}
 				var info = discordgo.MessageEmbed{}
 				info.Title = "Removed ingredient " + ingredient
 				mealEmbed = append(mealEmbed, info)
@@ -59,10 +67,10 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 
 func getRecipeFromFridge(uid string) (utils.Recipe, error) {
 	//Use a test fridge until we have an implementation of UserData
-	fridge := createTestFridge()
-
-	//Retrieve fridge from database
-	//fridge := retrieveFridgeIngredients(uid)
+	fridge, err := retrieveFridgeIngredients(uid)
+	if err != nil {
+		return utils.Recipe{}, err
+	}
 
 	//Check if fridge is empty
 	if len(fridge.Ingredients) == 0 {
@@ -78,11 +86,9 @@ func getRecipeFromFridge(uid string) (utils.Recipe, error) {
 	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + ingredientString + "&number=" + number + "&apiKey=" + utils.MealKey
 	var recipe utils.Recipe
 	//Use GetAndDecode function to decode it into recipe struct
-	err := dataRequests.GetAndDecodeURL(url, &recipe)
-
+	requestError := dataRequests.GetAndDecodeURL(url, &recipe)
 	//Check if there was any errors in fetching and decoding the url
-	if err != nil {
-		fmt.Println("Hei fra getrecipe")
+	if requestError != nil {
 		return utils.Recipe{}, err
 	}
 	return recipe, nil
@@ -130,56 +136,69 @@ func createTestFridge() utils.Fridge {
 }
 
 // retrieveFridge Retrieve fridge with its ingredients from the database
-func retrieveFridge(uid string) map[string]interface{} {
+func retrieveFridge(uid string) (map[string]interface{}, error) {
 	fmt.Println("Retrieve from fridge command")
 	// Retrieve the fridge entry from the database
-	fridge := DB.RetrieveFromDatabase("fridge", uid)
-
-	return fridge
+	fridge, err := DB.RetrieveFromDatabase("fridge", uid)
+	if err != nil {
+		return fridge, err
+	}
+	return fridge, nil
 }
 
 // retrieveFridgeIngredients Retrieves the ingredients in the format required for recipe searching
-func retrieveFridgeIngredients(uid string) utils.Fridge {
+func retrieveFridgeIngredients(uid string) (utils.Fridge, error) {
 	// Output variable
 	var fridgeIngredients utils.Fridge
 	// Retrieve the fridge from the database
-	fridge := retrieveFridge(uid)
+	fridge, err := retrieveFridge(uid)
+	if err != nil {
+		return utils.Fridge{}, err
+	}
 	// Add the fridge ingredients to the fridgeIngredients
 	for ingredient := range fridge {
 		fridgeIngredients.Ingredients = append(fridgeIngredients.Ingredients, ingredient)
 	}
 	// Return the formatted ingredients
-	return fridgeIngredients
+	return fridgeIngredients, nil
 }
 
 // addToFridge Adds an ingredient to the database
-func addToFridge(ingredient string, uid string) {
+func addToFridge(ingredient string, uid string) error {
 	fmt.Println("Add to fridge command")
 	// Retrieve the fridge from the database
-	fridge := retrieveFridge(uid)
+	fridge, err := retrieveFridge(uid)
+	if err != nil {
+		return err
+	}
 	// Add the ingredient to the fridge
 	fridge[ingredient] = "1"
 	// Send the updated fridge to the database
 	DB.AddToDatabase("fridge", uid, fridge)
 
-	return
+	return nil
 }
 
 // removeFromFridge Removes an ingredient from the database
-func removeFromFridge(ingredient string, uid string) {
+func removeFromFridge(ingredient string, uid string) error {
 	// Retrieve the fridge from the database
-	fridge := retrieveFridge(uid)
+	fridge, err := retrieveFridge(uid)
+	if err != nil {
+		return err
+	}
 	// Remove the ingredient
 	delete(fridge, ingredient)
 	// Send the updated fridge to the database
 	DB.AddToDatabase("fridge", uid, fridge)
 
-	return
+	return nil
 }
 
-/*
-func createViewMessage(uid string) []discordgo.MessageEmbed {
-	fridge := retrieveFridge(uid)
+func createViewMessage(uid string) ([]discordgo.MessageEmbed, error) {
+	fridge, err := retrieveFridgeIngredients(uid)
+	if err != nil {
+		return []discordgo.MessageEmbed{}, err
+	}
 	//fridge := createTestFridge()
 
 	var messageList []discordgo.MessageEmbed
@@ -192,13 +211,14 @@ func createViewMessage(uid string) []discordgo.MessageEmbed {
 	for _, ingredient := range fridge.Ingredients {
 		ingredients += ingredient + "\n"
 	}
-	if len(fridge.Ingredients) < 1 {ingredients = "There are no ingredients stored in your fridge"}
-	//Embed missed ingredients
+	if len(fridge.Ingredients) < 1 {
+		ingredients = "There are no ingredients stored in your fridge"
+	}
+	//Embed ingredients to message
 	fridgeContent := discordgo.MessageEmbedField{Name: "Ingredients: ", Value: ingredients}
 	fields := []*discordgo.MessageEmbedField{&fridgeContent}
 
 	message.Fields = fields
 	messageList = append(messageList, message)
-	return []discordgo.MessageEmbed{}
+	return []discordgo.MessageEmbed{}, nil
 }
-*/

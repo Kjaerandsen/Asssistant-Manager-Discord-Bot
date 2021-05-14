@@ -72,9 +72,12 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			var location string
 
 			//default response if no flag is given
-			data := DB.RetrieveFromDatabase("weather", uid)
+			data, err := DB.RetrieveFromDatabase("weather", uid)
+			if err != nil {
+				return weatherEmbed, err
+			}
 			// Checks if the default location is set, if not default to the defaultcity of the program
-			if data["location"] == nil{
+			if data["location"] == nil {
 				location = utils.DefaultCity
 			} else {
 				location = data["location"].(string)
