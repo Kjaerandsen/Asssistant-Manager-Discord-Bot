@@ -102,7 +102,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if err != nil { // Error handling
 			break
 		}
-		// Unsure where to put this, but I need to make a goroutine and get user info from inital message.
+		// Unsure where to put this, but I need to make a goroutine and get user info from initial message.
 		// Prase time to seconds
 		var time clock.Duration
 		split := strings.Split(flags["-time"], " ")
@@ -176,7 +176,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 			}
 		}(time, channel, users)
 	case utils.Bills:
-		reply, err = services.HandleRouteToBills(subRoute, flags)
+		reply, err = services.HandleRouteToBills(subRoute, flags, m.Author.ID)
 	case utils.MealPlan:
 		replies, err = services.HandleRouteToMeals(subRoute, flags, m.Author.ID)
 	case utils.Config:
