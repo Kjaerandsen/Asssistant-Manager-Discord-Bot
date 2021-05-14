@@ -1,6 +1,7 @@
 package services
 
 import (
+	"assistant/DB"
 	dataRequests "assistant/DataRequests"
 	"assistant/utils"
 	"errors"
@@ -10,15 +11,16 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HandleRouteToMeals(subRoute string, flags map[string]string) ([]discordgo.MessageEmbed, error) {
+func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([]discordgo.MessageEmbed, error) {
 	var mealEmbed = []discordgo.MessageEmbed{}
 
 	switch subRoute {
 	case utils.Get, utils.View, utils.Check:
 		if len(flags) != 0 {
 			return mealEmbed, nil
-		} else { //Get from fridge
-			recipes, err := getRecipeFromFridge()
+		} else {
+			//Get from fridge
+			recipes, err := getRecipeFromFridge(uid)
 			if err != nil {
 				return mealEmbed, err
 			}
@@ -26,13 +28,27 @@ func HandleRouteToMeals(subRoute string, flags map[string]string) ([]discordgo.M
 		}
 	case utils.Add, utils.Set:
 		if len(flags) != 0 {
-			return mealEmbed, nil
+			if ingredient, ok := flags[utils.Ingredient]; ok {
+				addToFridge(ingredient, uid)
+				var info = discordgo.MessageEmbed{}
+				info.Title  = "Added ingredient " + ingredient
+				mealEmbed = append(mealEmbed, info)
+				return mealEmbed, nil
+			}
+			return mealEmbed, errors.New("ingredient flag is required")
 		} else {
 			return mealEmbed, errors.New("flags are needed")
 		}
 	case utils.Delete, utils.Remove:
 		if len(flags) != 0 {
-			return mealEmbed, nil
+			if ingredient, ok := flags[utils.Ingredient]; ok {
+				removeFromFridge(ingredient, uid)
+				var info = discordgo.MessageEmbed{}
+				info.Title  = "Removed ingredient " + ingredient
+				mealEmbed = append(mealEmbed, info)
+				return mealEmbed, nil
+			}
+			return mealEmbed, errors.New("ingredient flag is required")
 		} else {
 			return mealEmbed, errors.New("flags are needed")
 		}
@@ -41,9 +57,13 @@ func HandleRouteToMeals(subRoute string, flags map[string]string) ([]discordgo.M
 	}
 }
 
-func getRecipeFromFridge() (utils.Recipe, error) {
+func getRecipeFromFridge(uid string) (utils.Recipe, error) {
 	//Use a test fridge until we have an implementation of UserData
 	fridge := createTestFridge()
+
+	//Retrieve fridge from database
+	//fridge := retrieveFridgeIngredients(uid)
+
 	//Check if fridge is empty
 	if len(fridge.Ingredients) == 0 {
 		return utils.Recipe{}, errors.New("fridge is empty")
@@ -100,9 +120,58 @@ func createRecipeMessages(recipes utils.Recipe) []discordgo.MessageEmbed {
 	return messageArray
 }
 
-//createTestFridge returns a fridge with some ingredients
+// createTestFridge returns a fridge with some ingredients
 func createTestFridge() utils.Fridge {
 	var fridge utils.Fridge
 	fridge.Ingredients = append(fridge.Ingredients, "Apple", "Milk", "Chicken", "Butter")
+
 	return fridge
+}
+
+// retrieveFridge Retrieve fridge with its ingredients from the database
+func retrieveFridge(uid string) map[string]interface{} {
+	fmt.Println("Retrieve from fridge command")
+	// Retrieve the fridge entry from the database
+	fridge := DB.RetrieveFromDatabase("fridge", uid)
+
+	return fridge
+}
+
+// retrieveFridgeIngredients Retrieves the ingredients in the format required for recipe searching
+func retrieveFridgeIngredients(uid string) utils.Fridge{
+	// Output variable
+	var fridgeIngredients utils.Fridge
+	// Retrieve the fridge from the database
+	fridge := retrieveFridge(uid)
+	// Add the fridge ingredients to the fridgeIngredients
+	for ingredient := range fridge {
+		fridgeIngredients.Ingredients = append(fridgeIngredients.Ingredients, ingredient)
+	}
+	// Return the formatted ingredients
+	return fridgeIngredients
+}
+
+// addToFridge Adds an ingredient to the database
+func addToFridge(ingredient string, uid string) {
+	fmt.Println("Add to fridge command")
+	// Retrieve the fridge from the database
+	fridge := retrieveFridge(uid)
+	// Add the ingredient to the fridge
+	fridge[ingredient] = "1"
+	// Send the updated fridge to the database
+	DB.AddToDatabase("fridge",uid,fridge)
+
+	return
+}
+
+// removeFromFridge Removes an ingredient from the database
+func removeFromFridge(ingredient string, uid string) {
+	// Retrieve the fridge from the database
+	fridge := retrieveFridge(uid)
+	// Remove the ingredient
+	delete(fridge, ingredient)
+	// Send the updated fridge to the database
+	DB.AddToDatabase("fridge",uid,fridge)
+
+	return
 }

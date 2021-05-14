@@ -34,6 +34,7 @@ const (
 const (
 	Location 		= "location"
 	Units    		= "units"
+	Ingredient		= "ingredient"
 	FlagPrefix		= "flagPref"
 	BotPrefix		= "botPref"
 	Query			= "q"
