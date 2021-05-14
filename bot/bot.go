@@ -199,10 +199,12 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 			err := s.ChannelMessageDelete(m.ChannelID, messageID)
 			fmt.Print(err)
 		}(message.ID, s)
-	} else if len(replies) > 0 {
+	} else if len(replies) > 1 {
 		message, _ := s.ChannelMessageSendEmbed(m.ChannelID, &replies[0])
 		go spinReaction(message.ID, m.ChannelID, replies, s)
 		s.MessageReactionsRemoveAll(m.ChannelID, message.ID)
+	} else if len(replies) == 1 {
+		s.ChannelMessageSendEmbed(m.ChannelID, &replies[0])
 	} else {
 		s.ChannelMessageSendEmbed(m.ChannelID, &reply)
 	}
