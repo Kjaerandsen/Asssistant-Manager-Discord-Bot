@@ -79,7 +79,8 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		return
 	}
 
-	s.ChannelMessageDelete(m.ChannelID, m.ID)
+	//s.ChannelMessageDelete(m.ChannelID, m.ID)
+
 	// TODO remove this, for testing purposes only
 	// m.Author.ID is a unique identifier for the user typing the message
 	//DB.Test(m.Author.ID)
@@ -96,14 +97,14 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case utils.News:
 		replies, err = services.HandleRouteToNews(subRoute, flags)
 	case utils.Reminders:
-		reply, err = services.HandleRouteToReminder(subRoute, flags)
+		replies, err = services.HandleRouteToReminder(subRoute, flags)
 		if err != nil { // Error handling
 			break
 		}
 
 		// Prase time to seconds
 		var time clock.Duration
-		split := strings.Split(flags["-time"], " ")
+		split := strings.Split(flags["time"], " ")
 		count, type_ := split[0], split[1]
 		var i int
 		i, err = strconv.Atoi(count)
@@ -129,24 +130,24 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 		// Get users
 		var users []*discordgo.User
-		if _, ok := flags["-users"]; !ok {
+		if _, ok := flags["users"]; !ok {
 			users = append(users, m.Author)
 		} else {
-			users = m.Mentions
+			users = m.Mentions[1:]
 		}
 
 		// Get channel
 		var channel *discordgo.Channel
-		if _, ok := flags["-channel"]; !ok {
+		if _, ok := flags["channel"]; !ok {
 			channel, _ = s.Channel(m.ChannelID)
 		} else {
 			channel = func(str string) *discordgo.Channel {
-				str = strings.TrimPrefix(str, "<")
-				str = strings.TrimPrefix(str, "#")
-				str = strings.TrimSuffix(str, ">")
+				str = str[1:]
+				str = str[1:]
+				str = str[:len(str)-1]
 				channel, _ := s.Channel(str)
 				return channel
-			}(flags["-channel"])
+			}(strings.Split(flags["channel"], " ")[0])
 		}
 
 		// Add reminder to database
@@ -154,28 +155,39 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		// Create coroutine and make it wait
 		go func(time clock.Duration, channel *discordgo.Channel, users []*discordgo.User) {
 			clock.Sleep(time)
-
 			// Check if the reminder is still in the database
 
-			reply.Description = flags["-message"]
+			reply.Title = "📌 Reminder"
+			footer := ""
+			for _, user :=  range users{
+				u, _ := s.GuildMember(m.GuildID, user.ID)
+				footer += u.Nick + " "
+			}
+
+			reply.Footer = &discordgo.MessageEmbedFooter{Text: footer}
+
+			reply.Description = "Message: " + flags["message"]
 
 			var mentions string
 			for _, user := range users {
 				mentions += " " + user.Mention()
 			}
 
-			if channel.ID != m.ChannelID {
-				// Send in specified channel
-				s.ChannelMessageSend(channel.ID, mentions)
-				s.ChannelMessageSendEmbed(channel.ID, &reply)
+			if _, ok := flags["channel"]; ok {
+				s.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
+					Content: mentions,
+					Embed: &reply,
+				})
 			} else if users[0] == m.Author {
 				// Send in DM channel
 				dmchannel, _ := s.UserChannelCreate(users[0].ID)
 				s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
 			} else {
 				// Send in default channel
-				s.ChannelMessageSend(channel.ID, mentions)
-				s.ChannelMessageSendEmbed(channel.ID, &reply)
+				s.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
+					Content: mentions,
+					Embed: &reply,
+				})
 			}
 		}(time, channel, users)
 	case utils.Bills:
