@@ -32,14 +32,28 @@ Fridge and cooking:
 * Get recipe based on ingredients in the fridge
 * Get recipe based on specified ingredients
 
+# Adding the bot to your own server
+
+The requirements for you to add the bot to the server is that you have **Manage Server** privileges on the server. 
+
+Follow this [link](https://discord.com/api/oauth2/authorize?client_id=834015714200649758&permissions=8&scope=bot), you might need to log in to your discord account before the interface shows up. Once logged in, it will ask to connect to your server, scroll through the list of servers under _add server_ and pick the server you want to add the bot in. 
+
+To add the bot to several servers, simply repeat this process for every server.
+
+# Running it on your own computer
+
 ### Setup
 
 - Download the git repo.
-- Compile the program using go.
-- Create a discord bot with message and webhook rights and add it to your discord server.
-- Set the system env BOT_TOKEN to the discord bot's token.
+- Add the bot to your server as described above.
 - Set up the database as shown under "Database setup" further down.
+- Compile the program using go and run it from the base folder of the project. Alternatively see the docker instructions below.
 - Run the program.
+
+### Docker setup:
+- Download the git repo.
+- Run "docker build -t discobot ." from the project folder
+- Run the bot by using "docker run discobot"
 
 #### Database setup: 
 This project uses google's firebase firestore as the database. First set up a firebase account and project.
