@@ -1,7 +1,6 @@
 package main
 
 import (
-	"assistant/DB"
 	"assistant/services"
 	"assistant/utils"
 	"errors"
@@ -43,7 +42,7 @@ func main() {
 	}
 
 	// Initiates the database connection
-	DB.DatabaseInit()
+	//DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)

@@ -83,18 +83,10 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 			return mealEmbed, errors.New("Ingredient or Ingredients flag is needed to delete from fridge, see: help meals for instructions")
 		}
 	case utils.Help:
-		message, err := createHelpMessage()
-		return message, err
+		return utils.MealPlannerHelper(), nil
 	default:
 		return mealEmbed, errors.New("sub route not recognized")
 	}
-}
-
-func createHelpMessage() ([]discordgo.MessageEmbed, error) {
-	var messageList []discordgo.MessageEmbed
-	message := utils.MealPlannerHelper()
-	messageList = append(messageList, message)
-	return messageList, nil
 }
 
 func getRecipeFromFridge(uid string, number int) (utils.Recipe, error) {
