@@ -8,7 +8,7 @@ import (
 
 //getAndDecodeURL recieves an url that you want to retrieve information from
 //and decodes it into the struct that is passed along
-func getAndDecodeURL(url string, decodedJSON interface{}) error {
+func GetAndDecodeURL(url string, decodedJSON interface{}) error {
 	//Send a GET request to the url
 	response, err := http.Get(url)
 	if err != nil {
