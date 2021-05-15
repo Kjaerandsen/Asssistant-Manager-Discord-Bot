@@ -43,6 +43,8 @@ func main() {
 	// Initiates the database connection
 	DB.DatabaseInit()
 
+
+
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
 	discord.Identify.Intents = discordgo.IntentsGuildMessages
