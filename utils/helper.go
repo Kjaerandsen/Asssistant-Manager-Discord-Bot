@@ -13,6 +13,10 @@ func WeatherHelper() discordgo.MessageEmbed {
 			{Name: "-units", Value: "Parameter: 'system of measurement' \n " +
 				"					Available systems: Metric, Imperial and SI \n" +
 				"					Example: get weather -units Imperial"},
+			{Name: "-lang", Value: "Parameter: 'Language code' \n " +
+				"					Available language codes: en, no, es, fr, de, zh_tw \n" +
+				"					Example: get weather -lang no"},
+			{Name: "Set default values:", Value: "Example: set weather -location london -units imperial -lang fr"},
 		},
 	}
 	return embed

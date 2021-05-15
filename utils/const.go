@@ -32,6 +32,7 @@ const (
 	Flag constants
 */
 const (
+	Language    = "lang"
 	Location    = "location"
 	Units       = "units"
 	Ingredient  = "ingredient"
@@ -54,10 +55,11 @@ const (
 	Weather_forecast constants
 */
 const (
-	WeatherAPI  = "http://api.openweathermap.org/data/2.5/weather?q="
-	APIKey      = "94aad1fbb7ae86f5de4cf9aafc51e2e2"
-	DefaultCity = "Gjøvik"
-	DefaultUnit = "Metric"
+	WeatherAPI      = "http://api.openweathermap.org/data/2.5/weather?q="
+	WeatherKey      = "94aad1fbb7ae86f5de4cf9aafc51e2e2"
+	DefaultCity     = "Gjøvik"
+	DefaultUnit     = "Metric"
+	DefaultLanguage = "en"
 )
 
 /*
