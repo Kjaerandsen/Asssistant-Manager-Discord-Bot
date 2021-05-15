@@ -4,12 +4,8 @@ func HandleRouteToDiag(subRoute string, flags map[string]string)(discordgo.Messa
 	case utils.View, utils.Get, utils.Check:
 		diagEmbed.Title = "Diagnostics"
 		diagEmbed.Fields = []*discordgo.MessageEmbedField{
-			{
-				Name: "NewsAPI",
-				Value: getStatusCode("___"),
-			},
 			{Name: "OpenWeatherMap", Value: getStatusCode("http://pro.openweathermap.org/data/2.5/forecast/daily?q=gj%C3%B8vik&cnt=3&appid=94aad1fbb7ae86f5de4cf9aafc51e2e2")},
-			{Name: "Big News Search API", Value: "___"},
+			{Name: "Bing News Search API", Value: getStatusCode("https://api.bing.microsoft.com/v7.0/news/search")},
 			{Name: "Spoonacular", Value: getStatusCode("https://api.spoonacular.com/recipes/716429/information?includeNutrition=false&apiKey=" + utils.MealKey)},
 
 		}
