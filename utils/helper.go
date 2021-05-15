@@ -49,6 +49,8 @@ func ReminderHelper() []discordgo.MessageEmbed {
 				"Available Commands:",
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "Add or Set", Value: "Are used for setting a new reminder"},
+				{Name: "Get, Check or View", Value: "Are used for getting all reminders you have made on that guild"},
+				{Name: "Delete or Remove", Value: "Are used for deleting a reminder that you have set on that guild"},
 			},
 		},
 	}

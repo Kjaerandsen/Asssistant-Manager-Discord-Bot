@@ -12,7 +12,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	"time"
+	clock "time"
 )
 
 /*
@@ -42,6 +42,8 @@ func main() {
 
 	// Initiates the database connection
 	DB.DatabaseInit()
+
+	checkReminders(discord)
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
@@ -177,7 +179,7 @@ func spinReaction(messageID string, channelID string, replies []discordgo.Messag
 			break
 		}
 
-		time.Sleep(1 * time.Second)
+		clock.Sleep(1 * clock.Second)
 		i += 1
 	}
 }
@@ -219,4 +221,34 @@ func parseContent(content string) (string, string, string, map[string]string, er
 	}
 
 	return prefix, subCommand, command, flags, nil
+}
+
+func checkReminders(discord *discordgo.Session){
+	reminderList := DB.RetrieveAll("reminders")
+	for _, guild := range reminderList{
+		for _, reminder := range guild.(map[string]interface{}){
+			channel, _ := discord.Channel(reminder.(map[string]interface{})["channel"].(map[string]interface{})["ID"].(string))
+			message := reminder.(map[string]interface{})["message"].(string)
+
+			var users []*discordgo.User
+			usersList := reminder.(map[string]interface{})["users"]
+			for _, userObject := range usersList.([]interface{}){
+				ID := userObject.(map[string]interface{})["ID"].(string)
+				user,_ := discord.User(ID)
+				users = append(users, user)
+			}
+
+			guildID := reminder.(map[string]interface{})["channel"].(map[string]interface{})["GuildID"].(string)
+			messageID := reminder.(map[string]interface{})["channel"].(map[string]interface{})["LastMessageID"].(string)
+
+			time := reminder.(map[string]interface{})["alarmTime"]
+			difference := clock.Since(time.(clock.Time))
+			if difference > 0{
+				difference = 0
+			}
+
+			go services.RunReminder(difference, channel, message, users, guildID, messageID, discord)
+
+		}
+	}
 }

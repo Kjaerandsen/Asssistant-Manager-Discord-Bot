@@ -85,6 +85,11 @@ func HandleRouteToReminder(subRoute string, flags map[string]string, s *discordg
 					}(strings.Split(flags["channel"], " ")[0])
 				}
 
+				// Special handle dms
+				if len(users) == 1 && users[0] == m.Author{
+					channel = nil
+				}
+
 				// Add reminder to database
 				reminder := map[string]interface{}{
 					"alarmTime": alarmTime,
@@ -112,7 +117,7 @@ func HandleRouteToReminder(subRoute string, flags map[string]string, s *discordg
 				}
 				embed.Description += "about \"" + flags["message"] + "\" in " + flags["time"] + "."
 
-				go runReminder(time, channel, users, flags, s, m)
+				go RunReminder(time, channel, flags["message"], users, m.GuildID, m.ID, s)
 
 				return []discordgo.MessageEmbed{embed}, nil
 			} else {
@@ -132,10 +137,9 @@ func HandleRouteToReminder(subRoute string, flags map[string]string, s *discordg
 			if _, ok := reminderList[id]; !ok{
 				return nil, errors.New("could not find the reminder")
 			}
-
-			delete(reminderList, flags["id"])
+			delete(reminderList, id)
 			DB.AddToDatabase("reminders", m.GuildID, reminderList)
-			return []discordgo.MessageEmbed{{Title: "📌 Reminder has been forgotten"}}, nil
+			return []discordgo.MessageEmbed{{Title: "📌 Reminder has been successfully deleted"}}, nil
 		} else {
 			return nil, errors.New("need to specify the -id tag")
 		}
@@ -146,47 +150,45 @@ func HandleRouteToReminder(subRoute string, flags map[string]string, s *discordg
 	}
 }
 
-func runReminder(time clock.Duration, channel *discordgo.Channel, users []*discordgo.User, flags map[string]string, s *discordgo.Session, m *discordgo.MessageCreate){
+func RunReminder(time clock.Duration, channel *discordgo.Channel, message string, users []*discordgo.User, guildID string, messageID string, s *discordgo.Session){
 	clock.Sleep(time)
 
 	// Check if the reminder is still in the database
-	reminderList, _ := DB.RetrieveFromDatabase("reminders", m.GuildID)
-	if _, ok := reminderList[m.ID]; !ok{
+	reminderList, _ := DB.RetrieveFromDatabase("reminders", guildID)
+	if _, ok := reminderList[messageID]; !ok{
 		return
 	}
+
+	delete(reminderList, messageID)
+	DB.AddToDatabase("reminders", guildID, reminderList)
 
 	// Create reply
 	var reply discordgo.MessageEmbed
 	reply.Title = "📌 Reminder"
 	footer := ""
 	for _, user :=  range users{
-		u, _ := s.GuildMember(m.GuildID, user.ID)
+		u, _ := s.GuildMember(guildID, user.ID)
 		footer += u.Nick + " "
 	}
 
 	reply.Footer = &discordgo.MessageEmbedFooter{Text: footer}
 
-	reply.Description = "Message: " + flags["message"]
+	reply.Description = "Message: " + message
 
 	var mentions string
 	for _, user := range users {
 		mentions += " " + user.Mention()
 	}
 
-	if _, ok := flags["channel"]; ok {
-		s.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
-			Content: mentions,
-			Embed: &reply,
-		})
-	} else if users[0] == m.Author {
-		// Send in DM channel
-		dmchannel, _ := s.UserChannelCreate(users[0].ID)
-		s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
-	} else {
+	if channel != nil{
 		// Send in default channel
 		s.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
 			Content: mentions,
 			Embed: &reply,
 		})
+	} else {
+		// Send in DM channel
+		dmchannel, _ := s.UserChannelCreate(users[0].ID)
+		s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
 	}
 }
