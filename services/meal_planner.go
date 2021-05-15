@@ -49,8 +49,8 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 			if ingredient, ok := flags[utils.Ingredient]; ok {
 				//Check if its a singular ingredient
 				singular := checkSingleIngredient(ingredient)
-				if singular == false {
-					return mealEmbed, errors.New("Wrong use of flags use: -Ingredients for multiple ingredients")
+				if !singular {
+					return mealEmbed, errors.New("Wrong use of flags use, -Ingredient can only be used for singular ingredients")
 				}
 				err := removeFromFridge(ingredient, uid)
 				if err != nil {
@@ -61,7 +61,22 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 				mealEmbed = append(mealEmbed, info)
 				return mealEmbed, nil
 			} else if ingredients, ok := flags[utils.Ingredients]; ok {
-				fmt.Println(ingredients)
+				list, err := doParseIngredients(ingredients)
+
+				if err != nil {
+					return mealEmbed, err
+				}
+				for index, ing := range list {
+					err = removeFromFridge(ing, uid)
+
+					if err != nil {
+						//Create error string
+						deletedElements := strings.Join(list[0:index], ",")
+						remainingElements := strings.Join(list[index:len(list)-1], ",")
+						return mealEmbed, errors.New("An element was not found in fridge:" + list[index] + "\n" + "deleted elemments from fridge: " + deletedElements + "\n remaining elements: " + remainingElements)
+					}
+				}
+
 			}
 			return mealEmbed, errors.New("Ingredient(s) flag not found in message. See: help meals for instructions")
 		} else {
@@ -78,7 +93,6 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 func createHelpMessage() ([]discordgo.MessageEmbed, error) {
 	var messageList []discordgo.MessageEmbed
 	message := utils.MealPlannerHelper()
-	fmt.Println("I Worked")
 	messageList = append(messageList, message)
 	return messageList, nil
 }
@@ -149,14 +163,6 @@ func createRecipeMessages(recipes utils.Recipe) []discordgo.MessageEmbed {
 		messageArray = append(messageArray, recipeMessage)
 	}
 	return messageArray
-}
-
-// createTestFridge returns a fridge with some ingredients
-func createTestFridge() utils.Fridge {
-	var fridge utils.Fridge
-	fridge.Ingredients = append(fridge.Ingredients, "Apple", "Milk", "Chicken", "Butter")
-
-	return fridge
 }
 
 // retrieveFridge Retrieve fridge with its ingredients from the database
@@ -259,4 +265,18 @@ func checkSingleIngredient(ingredient string) bool {
 		return false
 	}
 	return true
+}
+
+//doParseIngredients parses the ingredients string to a slice
+func doParseIngredients(ingredients string) ([]string, error) {
+	list := strings.Split(ingredients, ",") //Split on ,
+
+	if len(list) < 1 {
+		return list, errors.New("Error during parsing, please seperate using commas like: -ingredients potato,chicken,sausage")
+	}
+	//Remove trailing and start spaces
+	for _, value := range list {
+		value = strings.TrimSpace(value)
+	}
+	return list, nil
 }
