@@ -126,3 +126,11 @@ type NewsWebhook struct {
 	Flags   		map[string]string 	`firestore:"flags"`
 	RequestType		string          	`firestore:"requestType"`
 }
+
+// NewsWebhooks Webhook structure
+type NewsWebhooks []struct {
+	Address    		string              `firestore:"address"`
+	Timeout 		int             	`firestore:"timeout"`
+	Flags   		map[string]string 	`firestore:"flags"`
+	RequestType		string          	`firestore:"requestType"`
+}

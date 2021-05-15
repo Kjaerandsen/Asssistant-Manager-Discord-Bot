@@ -8,6 +8,8 @@ import (
 	"unicode/utf8"
 )
 
+// HandleRouteToSettings experimental editing of bot and flag prefixes while bot is running.
+// Works fine the first change, but no changes after second edit
 func HandleRouteToSettings(subRoute string, botP, flagP *string, flags map[string]string)(discordgo.MessageEmbed, error){
 	var settingsEmbed discordgo.MessageEmbed
 	var botPrefixEmbed = discordgo.MessageEmbedField{Name: "Bot command prefix unchanged", Value: *botP}		// Fields

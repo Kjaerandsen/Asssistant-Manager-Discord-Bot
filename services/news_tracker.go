@@ -1,6 +1,7 @@
 package services
 
 import (
+	"assistant/DB"
 	"assistant/utils"
 	"encoding/json"
 	"errors"
@@ -97,6 +98,15 @@ func HandleRouteToNews(subRoute, userID, channelID string, flags map[string]stri
 			return newsEmbed, nil
 		}
 	case utils.Add, utils.Set:
+		hookID, err := registerNewsWebhook(userID, channelID, flags)
+		if err != nil {
+			return nil, err
+		}
+		resp := discordgo.MessageEmbed{}
+		// Title and description
+		resp.Title = "Webhook has been registered"
+		resp.Description = fmt.Sprintf("Your webhook ID is %s\nYou can use the invoke route to invoke the webhook", hookID)
+		newsEmbed = append(newsEmbed, resp)
 
 		return newsEmbed, nil
 	case utils.Delete, utils.Remove:
@@ -216,18 +226,50 @@ func registerNewsWebhook(uID, cID string, flags map[string]string) (string, erro
 
 	if flags[utils.Category] != "" {	// Category priority
 		flags[utils.Category], err = getNewsCategory(flags)
-		if err != nil {
-
+		if err != nil { // Returns failure to set category error
+			return "", err
 		}
 		webhook.RequestType = "category"
 	} else if flags[utils.Query] != "" {	// Search secondary
 		webhook.RequestType = "search"
 	} else {	// Trending default
-		webhook.RequestType = "search"
+		webhook.RequestType = "trending"
+	}
+	webhook.Flags = flags	// Flags modified to fit API criteria
+
+	hookID, err := DB.PostNewsWebHook(uID, fmt.Sprintf("%v", time.Now().Unix()), webhook)
+	if err != nil { // Returns failure to set category error
+		return "", err
 	}
 
-	return "category", nil // Array of discord embedded messages
+	return hookID, nil // Array of discord embedded messages
 }
+
+/* getNewsWebhooks
+func getNewsWebhooks(uID string, flags map[string]string) ([]discordgo.MessageEmbed, error) {
+	var embed []discordgo.MessageEmbed
+	var err error
+
+	if flags[utils.ID] != "" {
+		res, err := DB.GetNewsWebHooksByID(uID, flags[utils.ID])
+		if err != nil { // Returns failure to set category error
+			return nil, err
+		}
+
+
+	} else {
+		res, err := DB.GetNewsWebHooksByUser(flags[utils.Filter], uID)
+		if err != nil { // Returns failure to set category error
+			return nil, err
+		}
+	}
+
+
+
+
+	return str, nil // Array of discord embedded messages
+}
+*/
 
 // generateNewsHTTPRequest generates an HTTP request based on flags provided
 // returns http request and requested page

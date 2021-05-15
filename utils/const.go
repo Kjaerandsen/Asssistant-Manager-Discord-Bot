@@ -41,14 +41,16 @@ const (
 	Value       = "value"
 	FlagPrefix  = "flagPref"
 	BotPrefix   = "botPref"
-	Query       = "q"
-	Category    = "category"
-	Page        = "p"
+	Query       = "q"			// Only Search
+	Category    = "category"	// Only Categories endpoint
+	Page        = "p"			// Only Categories and Search
 	Freshness   = "fresh"
 	Since       = "since"
 	SortBy      = "sort"
-	Hooks      = "hooks"
-	Timeout	   = "timeout"
+	Hooks       = "hooks"
+	Timeout	    = "timeout"
+	Filter		= "filter"
+	ID			= "id"
 )
 
 /*

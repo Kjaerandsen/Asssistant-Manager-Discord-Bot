@@ -30,9 +30,10 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 
 			} else if ingredients, ok := flags[utils.Ingredients]; ok {
 				singular := checkSingleIngredient(ingredients)
-				if !singular {
+				if singular {
 					return mealEmbed, errors.New("Wrong use of flags or bad syntax, -Ingredients can only be used for multiple ingredients \n given input: " + ingredients + "\n Example of good request: get meal -ingredients potato, chicken, ham")
 				}
+
 				//Replace spaces with no space as the url cannot generate without
 				ingredients = strings.ReplaceAll(ingredients, " ", "")
 				recipes, err := getRecipeByIngredient(ingredients, "10")
@@ -68,8 +69,8 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 				//Check for multiple ingredient flag
 			} else if ingredients, ok := flags[utils.Ingredients]; ok {
 				singular := checkSingleIngredient(ingredients)
-				if !singular {
-					return mealEmbed, errors.New("Wrong use of flags use, -Ingredient can only be used for singular ingredients")
+				if singular {
+					return mealEmbed, errors.New("Wrong use of flags or bad syntax, -Ingredients can only be used for multiple ingredients \n given input: " + ingredients)
 				}
 				list, err := doParseIngredients(ingredients)
 				//If parser found only one ingredient, or wrong syntax
@@ -102,8 +103,8 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 				//If multiple ingredient flags are passed
 			} else if ingredients, ok := flags[utils.Ingredients]; ok {
 				singular := checkSingleIngredient(ingredients)
-				if !singular {
-					return mealEmbed, errors.New("Wrong use of flags use, -Ingredient can only be used for singular ingredients")
+				if singular {
+					return mealEmbed, errors.New("Wrong use of flags or bad syntax, -Ingredients can only be used for multiple ingredients \n given input: " + ingredients)
 				}
 				list, err := doParseIngredients(ingredients)
 				//If parser found only one ingredient, or wrong syntax

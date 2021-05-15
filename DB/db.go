@@ -1,6 +1,7 @@
 package DB
 
 import (
+	"assistant/utils"
 	"cloud.google.com/go/firestore"
 	"context"
 	"errors"
@@ -112,7 +113,7 @@ func Test(i string) {
 }
 
 // PostNewsWebHook Adds a Webhook to the news collection
-func PostNewsWebHook(userID, hookID string, values map[string]interface{}) (string, error) {
+func PostNewsWebHook(userID, hookID string, values utils.NewsWebhook) (string, error) {
 	_, err := Client.Collection("news").
 		Doc(userID).
 		Collection("webhooks").
@@ -126,8 +127,8 @@ func PostNewsWebHook(userID, hookID string, values map[string]interface{}) (stri
 }
 
 // GetNewsWebHooksByUser Gets all webhooks registered by a discord user using their discord id
-func GetNewsWebHooksByUser(filter, userID string) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func GetNewsWebHooksByUser(filter, userID string) (utils.NewsWebhooks, error) {
+	//var data []utils.NewsWebhook
 	iter := Client.Collection("news").
 		Doc(userID).
 		Collection("webhooks").
@@ -145,30 +146,30 @@ func GetNewsWebHooksByUser(filter, userID string) (map[string]interface{}, error
 		case "trending":
 			if reqType.(string) == "trending" {
 				// Add the document to the data map with the documents id as the map key
-				data[doc.Ref.ID] = doc.Data()
+				//data = append(data, doc.DataTo(&data))
 			}
 		case "category":
 			if reqType.(string) == "category" {
 				// Add the document to the data map with the documents id as the map key
-				data[doc.Ref.ID] = doc.Data()
+				//data[doc.Ref.ID] = doc.Data()
 			}
 		case "search":
 			if reqType.(string) == "category" {
 				// Add the document to the data map with the documents id as the map key
-				data[doc.Ref.ID] = doc.Data()
+				//data[doc.Ref.ID] = doc.Data()
 			}
 		default:	// Gets all request types webhooks
 			// Add the document to the data map with the documents id as the map key
-			data[doc.Ref.ID] = doc.Data()
+			//data[doc.Ref.ID] = doc.Data()
 		}
 	}
 
-	return data, nil
+	return nil, nil
 }
 
 // GetNewsWebHooksByID Gets a webhook registered by a discord user using the hook id
-func GetNewsWebHooksByID(userID, hookID string) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
+func GetNewsWebHooksByID(userID, hookID string) (utils.NewsWebhook, error) {
+	 var data utils.NewsWebhook
 	doc, err := Client.Collection("news").
 		Doc(userID).
 		Collection("webhooks").
@@ -176,9 +177,13 @@ func GetNewsWebHooksByID(userID, hookID string) (map[string]interface{}, error) 
 		Get(Ctx)
 	if err != nil {
 		fmt.Println(err)
-		return nil, err
+		return data, err
 	}
-	data[doc.Ref.ID] = doc.Data()
+	err = doc.DataTo(&data)
+	if err != nil {
+		fmt.Println(err)
+		return data, err
+	}
 	return data, nil
 }
 

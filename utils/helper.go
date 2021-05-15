@@ -58,21 +58,43 @@ func ReminderHelper() []discordgo.MessageEmbed {
 func NewsHelper() []discordgo.MessageEmbed {
 	var embeds = []discordgo.MessageEmbed{
 		{Title: "News Help Page 1",
-			Description: "News command fetches news articles with a specified topic or something \n" +
+			Description: "The Search subroute provides a multitude of options along with a required search query \n" +
 				"Flip between pages with the arrow keys below. \n\n" +
 				"Available Flags:",
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "-q", Value: "Parameter: 'topic query' \n" +
 					"Example: get news -q Bitcoin"},
 				{Name: "-p", Value: "Parameter: 'page number' \n " +
-					"Example: get news -p 10"},
+					"Example: get news -q Bitcoin -p 10"},
+				{Name: "-since", Value: "Parameter: 'scope' \n " +
+					"Example: get news -q Bitcoin -since 2021-04-15"},
+				{Name: "-fresh", Value: "Parameter: 'freshness' \n " +
+					"Example: get news -q Bitcoin -fresh Week"},
+				{Name: "-sort", Value: "Parameter: 'sorting by date or relevance' \n " +
+					"Example: get news -q Bitcoin -sort Relevance"},
 			},
 		},
 		{Title: "News Help Page 2",
-			Description: "News command fetches news articles with a specified topic or something \n" +
+			Description: "The Trending subroute provides a quick way to get the latest and hottest news \n" +
 				"Flip between pages with the arrow keys below. \n\n" +
-				"Available Commands:",
-			Fields: []*discordgo.MessageEmbedField{},
+				"Available Flags:",
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "-q", Value: "Parameter: 'trending' \n" +
+					"Example: get news"},
+				{Name: "-p", Value: "Parameter: 'page number' \n " +
+					"Example: get news -p 2"},
+			},
+		},
+		{Title: "News Help Page 3",
+			Description: "The Category subroute provides access to market specific news \n" +
+				"Flip between pages with the arrow keys below. \n\n" +
+				"Available Flags:",
+			Fields: []*discordgo.MessageEmbedField{
+			    {Name: "-cat", Value: "Parameter: 'category' \n" +
+					"Example: get news -cat Science and Technology"},
+				{Name: "Available categories", Value: "Parameter: 'category' \n" +
+					"Business, Entertainment, Health, Politics, Products, Science And Technology,\n Sports, US, World, Africa, Americas, Asia, Europe, Middle East"},
+			},
 		},
 	}
 	return embeds
@@ -108,7 +130,7 @@ func MealPlannerHelper() []discordgo.MessageEmbed {
 				{Name: "Check or View", Value: "Are used for viewing your virtual fridge \n " +
 					"This command takes no flags and will ignore it them, if any \n\n" +
 					"Example: view meals"},
-				{Name: "Remove or Delete", Value: "Are used for deleting ingredients from your virtual fridge \n " +
+				{Name: "Remove or Delete", Value: "Are used for deleting ingredients from your virtual fridge" +
 					"his command has to be used in the combination of ingredient or ingredients flag \n\n" +
 					"Example: delete meals -ingredients chicken, apple, potato"},
 			},
