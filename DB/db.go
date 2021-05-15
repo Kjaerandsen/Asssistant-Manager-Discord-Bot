@@ -46,6 +46,14 @@ func AddToDatabase(collection string, entry string, values map[string]interface{
 	}
 }
 
+func RemoveFromDatabase(collection string, entry string) error{
+	_, err := Client.Collection(collection).Doc(entry).Delete(Ctx)
+	if err != nil {
+		return errors.New("could not delete entry from database")
+	}
+	return nil
+}
+
 // RetrieveFromDatabase Function that retrieves the map data of a document in a collection in firestore
 func RetrieveFromDatabase(collection string, entry string) (map[string]interface{}, error) {
 	data, err := Client.Collection(collection).Doc(entry).Get(Ctx)

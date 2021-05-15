@@ -1,20 +1,18 @@
 package main
 
 import (
+	"assistant/DB"
 	"assistant/services"
 	"assistant/utils"
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/bwmarrin/discordgo"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
-	clock "time"
-
-	"github.com/bwmarrin/discordgo"
 )
 
 /*
@@ -23,7 +21,7 @@ import (
 var (
 	Token      string
 	FlagPrefix = "-"
-	BotPrefix  = "<@!834015714200649758>"
+	BotPrefix  = "asdf"
 )
 
 func init() {
@@ -43,7 +41,7 @@ func main() {
 	}
 
 	// Initiates the database connection
-	//DB.DatabaseInit()
+	DB.DatabaseInit()
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	discord.AddHandler(router)
@@ -97,100 +95,6 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		replies, err = services.HandleRouteToWeather(subRoute, flags, m.Author.ID)
 	case utils.News:
 		replies, err = services.HandleRouteToNews(subRoute, flags)
-	case utils.Reminders:
-		replies, err = services.HandleRouteToReminder(subRoute, flags)
-		if err != nil { // Error handling
-			break
-		}
-
-		// Prase time to seconds
-		var time clock.Duration
-		split := strings.Split(flags["time"], " ")
-		count, type_ := split[0], split[1]
-		var i int
-		i, err = strconv.Atoi(count)
-		if err != nil {
-			break
-		}
-
-		if type_ == "day" || type_ == "days" {
-			time = clock.Duration(i*24*60*60) * clock.Second
-		} else if type_ == "hour" || type_ == "hours" {
-			time = clock.Duration(i*60*60) * clock.Second
-		} else if type_ == "minute" || type_ == "minutes" {
-			time = clock.Duration(i*60) * clock.Second
-		} else {
-			time = clock.Duration(i) * clock.Second
-		}
-
-		// Check for max value
-		if time >= 2592000*clock.Second {
-			err = errors.New("time exceeds maximum of 30 days")
-			break
-		}
-
-		// Get users
-		var users []*discordgo.User
-		if _, ok := flags["users"]; !ok {
-			users = append(users, m.Author)
-		} else {
-			users = m.Mentions[1:]
-		}
-
-		// Get channel
-		var channel *discordgo.Channel
-		if _, ok := flags["channel"]; !ok {
-			channel, _ = s.Channel(m.ChannelID)
-		} else {
-			channel = func(str string) *discordgo.Channel {
-				str = str[1:]
-				str = str[1:]
-				str = str[:len(str)-1]
-				channel, _ := s.Channel(str)
-				return channel
-			}(strings.Split(flags["channel"], " ")[0])
-		}
-
-		// Add reminder to database
-
-		// Create coroutine and make it wait
-		go func(time clock.Duration, channel *discordgo.Channel, users []*discordgo.User) {
-			clock.Sleep(time)
-			// Check if the reminder is still in the database
-
-			reply.Title = "📌 Reminder"
-			footer := ""
-			for _, user :=  range users{
-				u, _ := s.GuildMember(m.GuildID, user.ID)
-				footer += u.Nick + " "
-			}
-
-			reply.Footer = &discordgo.MessageEmbedFooter{Text: footer}
-
-			reply.Description = "Message: " + flags["message"]
-
-			var mentions string
-			for _, user := range users {
-				mentions += " " + user.Mention()
-			}
-
-			if _, ok := flags["channel"]; ok {
-				s.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
-					Content: mentions,
-					Embed: &reply,
-				})
-			} else if users[0] == m.Author {
-				// Send in DM channel
-				dmchannel, _ := s.UserChannelCreate(users[0].ID)
-				s.ChannelMessageSendEmbed(dmchannel.ID, &reply)
-			} else {
-				// Send in default channel
-				s.ChannelMessageSendComplex(channel.ID, &discordgo.MessageSend{
-					Content: mentions,
-					Embed: &reply,
-				})
-			}
-		}(time, channel, users)
 	case utils.Bills:
 		reply, err = services.HandleRouteToBills(subRoute, flags, m.Author.ID)
 	case utils.MealPlan:
@@ -203,18 +107,20 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 		reply, err = services.HandleRouteToSettings(subRoute, &BotPrefix, &FlagPrefix, flags)
 	case utils.Help:
 		replies, err = services.HandleRouteToHelper(subRoute, flags)
+	case utils.Reminders:
+		replies, err = services.HandleRouteToReminder(subRoute, flags, s, m)
 	default:
 		s.ChannelMessageSend(m.ChannelID, "command not recognized")
 	}
 
 	// Send reply
 	if err != nil {
-		message, _ := s.ChannelMessageSend(m.ChannelID, err.Error())
-		go func(messageID string, s *discordgo.Session) {
+		s.ChannelMessageSend(m.ChannelID, err.Error())
+		/*go func(messageID string, s *discordgo.Session) {
 			time.Sleep(1 * time.Second)
 			err := s.ChannelMessageDelete(m.ChannelID, messageID)
 			fmt.Print(err)
-		}(message.ID, s)
+		}(message.ID, s)*/
 	} else if len(replies) > 1 {
 		message, _ := s.ChannelMessageSendEmbed(m.ChannelID, &replies[0])
 		go spinReaction(message.ID, m.ChannelID, replies, s)
