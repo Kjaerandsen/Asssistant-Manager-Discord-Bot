@@ -4,7 +4,7 @@ package utils
 	Route constants
 */
 const (
-	Reminders = "reminders"
+	Reminders = "reminder"
 	Weather   = "weather"
 	Config    = "config"
 	Bills     = "bills"

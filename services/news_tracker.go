@@ -114,6 +114,8 @@ func HandleRouteToNews(subRoute string, flags map[string]string)([]discordgo.Mes
 		} else {
 			return newsEmbed, errors.New("flags are needed")
 		}
+	case utils.Help:
+		return utils.NewsHelper(), nil
 	default:
 		return newsEmbed, errors.New("sub route not recognized")
 	}

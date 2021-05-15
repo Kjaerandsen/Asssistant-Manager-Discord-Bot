@@ -6,14 +6,14 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HandleRouteToReminder(subRoute string, flags map[string]string)(discordgo.MessageEmbed, error){
+func HandleRouteToReminder(subRoute string, flags map[string]string)([]discordgo.MessageEmbed, error){
 	var reminderEmbed = discordgo.MessageEmbed{}
 	switch subRoute{
 	case utils.Get, utils.View, utils.Check:
 		if len(flags) != 0{
-			return reminderEmbed, errors.New("function not implemented")
+			return []discordgo.MessageEmbed{reminderEmbed}, errors.New("function not implemented")
 		} else {
-			return reminderEmbed, errors.New("function not implemented")
+			return []discordgo.MessageEmbed{reminderEmbed}, errors.New("function not implemented")
 		}
 	case utils.Add, utils.Set:
 		if len(flags) != 0{
@@ -34,17 +34,19 @@ func HandleRouteToReminder(subRoute string, flags map[string]string)(discordgo.M
 			// Set footer and fields
 			reminderEmbed.Footer = &footer
 
-			return reminderEmbed, nil
+			return []discordgo.MessageEmbed{reminderEmbed}, nil
 		} else {
-			return reminderEmbed, errors.New("flags are needed")
+			return []discordgo.MessageEmbed{reminderEmbed}, errors.New("flags are needed")
 		}
 	case utils.Delete, utils.Remove:
 		if len(flags) != 0{
-			return reminderEmbed, errors.New("function not implemented")
+			return []discordgo.MessageEmbed{reminderEmbed}, errors.New("function not implemented")
 		} else {
-			return reminderEmbed, errors.New("flags are needed")
+			return []discordgo.MessageEmbed{reminderEmbed}, errors.New("flags are needed")
 		}
+	case utils.Help:
+		return utils.ReminderHelper(), nil
 	default:
-		return reminderEmbed, errors.New("sub route not recognized")
+		return []discordgo.MessageEmbed{reminderEmbed}, errors.New("sub route not recognized")
 	}
 }

@@ -14,9 +14,8 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) (discordgo.MessageEmbed, error) {
+func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) ([]discordgo.MessageEmbed, error) {
 	var weatherEmbed = discordgo.MessageEmbed{}
-
 	//creates a map containing the available units
 	location, unit, language := getDefaultValues(uid)
 	currentCity := location
@@ -49,13 +48,11 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 					currentLang = lang
 				}
 			}
-
 			currentCity = strings.Title(currentCity)
 			//retrieve weather from API using given parameters
 			currentWeather, err := getWeather(currentCity, currentUnit, currentLang)
 			if err != nil {
-				weatherEmbed = utils.WeatherHelper()
-				return weatherEmbed, nil
+				return utils.WeatherHelper(), nil
 			}
 
 			// Fill in the weather embed
@@ -77,14 +74,13 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			weatherEmbed.Fields = fields
 			weatherEmbed.Footer = &footer
 
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 
 		} else {
 			//default response if no flag is given
 			currentWeather, err := getWeather(location, unit, language)
 			if err != nil {
-				weatherEmbed = utils.WeatherHelper()
-				return weatherEmbed, nil
+				return utils.WeatherHelper(), err
 			}
 			weatherEmbed.Title = "Weather forecast for " + location
 			weatherEmbed.Description = strings.Title(currentWeather.Weather[0].Description)
@@ -104,11 +100,10 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			weatherEmbed.Fields = fields
 			weatherEmbed.Footer = &footer
 
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 		}
 	case utils.Help:
-		weatherEmbed = utils.WeatherHelper()
-		return weatherEmbed, nil
+		return utils.WeatherHelper(), nil
 	case utils.Set:
 
 		if len(flags) != 0 {
@@ -150,18 +145,18 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 
 			weatherEmbed.Title = "Default values updated"
 			weatherEmbed.Description = descrption
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 		} else {
 			weatherEmbed.Title = "Something went wrong"
 			weatherEmbed.Description = "No parameter specified when setting default values"
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 		}
 	default:
 		// Error embed passed
 		weatherEmbed.Title = "Something went wrong"
 		weatherEmbed.Description = "Sub route not recognized, please use '@bot help' to see which options are available"
 
-		return weatherEmbed, nil
+		return []discordgo.MessageEmbed{weatherEmbed}, nil
 	}
 }
 
