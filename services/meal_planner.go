@@ -15,14 +15,14 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 	var mealEmbed = []discordgo.MessageEmbed{}
 
 	switch subRoute {
-	case utils.View:
+	case utils.View, utils.Check:
 		return createViewMessage(uid)
-	case utils.Get, utils.Check:
+	case utils.Get:
 		if len(flags) != 0 {
 			return mealEmbed, nil
 		} else {
 			//Get from fridge
-			recipes, err := getRecipeFromFridge(uid)
+			recipes, err := getRecipeFromFridge(uid, 0)
 			if err != nil {
 				return mealEmbed, err
 			}
@@ -47,31 +47,48 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 	case utils.Delete, utils.Remove:
 		if len(flags) != 0 {
 			if ingredient, ok := flags[utils.Ingredient]; ok {
+				//Check if its a singular ingredient
+				singular := checkSingleIngredient(ingredient)
+				if singular == false {
+					return mealEmbed, errors.New("Wrong use of flags use: -Ingredients for multiple ingredients")
+				}
 				err := removeFromFridge(ingredient, uid)
 				if err != nil {
 					return mealEmbed, err
 				}
 				var info = discordgo.MessageEmbed{}
-				info.Title = "Removed ingredient " + ingredient
+				info.Title = "Removed ingredient: " + ingredient
 				mealEmbed = append(mealEmbed, info)
 				return mealEmbed, nil
+			} else if ingredients, ok := flags[utils.Ingredients]; ok {
+				fmt.Println(ingredients)
 			}
-			return mealEmbed, errors.New("ingredient flag is required")
+			return mealEmbed, errors.New("Ingredient(s) flag not found in message. See: help meals for instructions")
 		} else {
-			return mealEmbed, errors.New("flags are needed")
+			return mealEmbed, errors.New("Ingredient or Ingredients flag is needed to delete from fridge, see: help meals for instructions")
 		}
+	case utils.Help:
+		message, err := createHelpMessage()
+		return message, err
 	default:
 		return mealEmbed, errors.New("sub route not recognized")
 	}
 }
 
-func getRecipeFromFridge(uid string) (utils.Recipe, error) {
+func createHelpMessage() ([]discordgo.MessageEmbed, error) {
+	var messageList []discordgo.MessageEmbed
+	message := utils.MealPlannerHelper()
+	fmt.Println("I Worked")
+	messageList = append(messageList, message)
+	return messageList, nil
+}
+
+func getRecipeFromFridge(uid string, number int) (utils.Recipe, error) {
 	//Use a test fridge until we have an implementation of UserData
 	fridge, err := retrieveFridgeIngredients(uid)
 	if err != nil {
-		return utils.Recipe{}, err
+		fmt.Println(err)
 	}
-
 	//Check if fridge is empty
 	if len(fridge.Ingredients) == 0 {
 		return utils.Recipe{}, errors.New("fridge is empty")
@@ -81,14 +98,21 @@ func getRecipeFromFridge(uid string) (utils.Recipe, error) {
 	for _, ingredient := range fridge.Ingredients {
 		ingredientString += ingredient + ","
 	}
-	number := "5"
+	ingredients := strings.ReplaceAll(ingredientString, " ", "")
+	fmt.Println(ingredientString)
+	//Set number for url
+	var numberString string
+	if number < 0 {
+		numberString = "10"
+	}
 	//Create url and recipe struct for holding data
-	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + ingredientString + "&number=" + number + "&apiKey=" + utils.MealKey
+	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + ingredients + "&number=" + numberString + "&apiKey=" + utils.MealKey
 	var recipe utils.Recipe
 	//Use GetAndDecode function to decode it into recipe struct
 	requestError := dataRequests.GetAndDecodeURL(url, &recipe)
 	//Check if there was any errors in fetching and decoding the url
 	if requestError != nil {
+		fmt.Println("Hello what happened")
 		return utils.Recipe{}, err
 	}
 	return recipe, nil
@@ -141,7 +165,8 @@ func retrieveFridge(uid string) (map[string]interface{}, error) {
 	// Retrieve the fridge entry from the database
 	fridge, err := DB.RetrieveFromDatabase("fridge", uid)
 	if err != nil {
-		return fridge, err
+		fmt.Println(err)
+		//return fridge, err
 	}
 	return fridge, nil
 }
@@ -186,12 +211,16 @@ func removeFromFridge(ingredient string, uid string) error {
 	if err != nil {
 		return err
 	}
-	// Remove the ingredient
-	delete(fridge, ingredient)
-	// Send the updated fridge to the database
-	DB.AddToDatabase("fridge", uid, fridge)
 
-	return nil
+	if _, ok := fridge[ingredient]; ok {
+		// Remove the ingredient
+		delete(fridge, ingredient)
+		// Send the updated fridge to the database
+		DB.AddToDatabase("fridge", uid, fridge)
+		return nil
+	} else {
+		return errors.New("Ingredient: " + ingredient + " is not in fridge")
+	}
 }
 
 func createViewMessage(uid string) ([]discordgo.MessageEmbed, error) {
@@ -220,5 +249,14 @@ func createViewMessage(uid string) ([]discordgo.MessageEmbed, error) {
 
 	message.Fields = fields
 	messageList = append(messageList, message)
-	return []discordgo.MessageEmbed{}, nil
+	return messageList, nil
+}
+
+//checkSingleIngredient is a simple test for single ingredients values
+func checkSingleIngredient(ingredient string) bool {
+	list := strings.Split(ingredient, ",") //Split on ,
+	if len(list) > 1 {
+		return false
+	}
+	return true
 }

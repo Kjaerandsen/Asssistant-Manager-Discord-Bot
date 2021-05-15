@@ -32,21 +32,22 @@ const (
 	Flag constants
 */
 const (
-	Location   = "location"
-	Units      = "units"
-	Ingredient = "ingredient"
-	Name	   = "name"
-	Value      = "value"
-	FlagPrefix = "flagPref"
-	BotPrefix  = "botPref"
-	Query      = "q"
-	Country    = "country"
-	Category   = "category"
-	Page       = "p"
-	Freshness  = "fresh"
-	Market     = "market"
-	Since      = "since"
-	SortBy     = "sort"
+	Location    = "location"
+	Units       = "units"
+	Ingredient  = "ingredient"
+	Ingredients = "ingredients"
+	Name        = "name"
+	Value       = "value"
+	FlagPrefix  = "flagPref"
+	BotPrefix   = "botPref"
+	Query       = "q"
+	Country     = "country"
+	Category    = "category"
+	Page        = "p"
+	Freshness   = "fresh"
+	Market      = "market"
+	Since       = "since"
+	SortBy      = "sort"
 )
 
 /*

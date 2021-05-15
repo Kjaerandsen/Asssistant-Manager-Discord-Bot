@@ -2,9 +2,9 @@ package utils
 
 import "github.com/bwmarrin/discordgo"
 
-func WeatherHelper()discordgo.MessageEmbed{
+func WeatherHelper() discordgo.MessageEmbed {
 	var embed = discordgo.MessageEmbed{
-		Title:  "Weather help",
+		Title: "Weather help",
 		Description: "Weather commands fetches the current weather report for a specified location. \n" +
 			"Available flags",
 		Fields: []*discordgo.MessageEmbedField{
@@ -18,9 +18,9 @@ func WeatherHelper()discordgo.MessageEmbed{
 	return embed
 }
 
-func ReminderHelper()discordgo.MessageEmbed{
+func ReminderHelper() discordgo.MessageEmbed {
 	var embed = discordgo.MessageEmbed{
-		Title:  "News help",
+		Title: "News help",
 		Description: "Reminder command sets a reminder for specified user(s) \n" +
 			"Available flags",
 		Fields: []*discordgo.MessageEmbedField{
@@ -37,9 +37,9 @@ func ReminderHelper()discordgo.MessageEmbed{
 	return embed
 }
 
-func NewsHelper()discordgo.MessageEmbed{
+func NewsHelper() discordgo.MessageEmbed {
 	var embed = discordgo.MessageEmbed{
-		Title:  "News command fetches news articles with a specified topic or something",
+		Title: "News command fetches news articles with a specified topic or something",
 		Description: "" +
 			"Available flags",
 		Fields: []*discordgo.MessageEmbedField{
@@ -52,17 +52,31 @@ func NewsHelper()discordgo.MessageEmbed{
 	return embed
 }
 
-func MealPlannerHelper()discordgo.MessageEmbed{
+func MealPlannerHelper() discordgo.MessageEmbed {
 	var embed = discordgo.MessageEmbed{
-		Title:  "News help",
-		Description: "Meal Planner command does something, idk \n" +
-			"Available flags",
+		Title: "Meal Planner Help",
+		Description: "The meal planner service provides recipe ideas, these can be based on your fridge or you can be randomized \n \n" +
+			"Available flags:",
 		Fields: []*discordgo.MessageEmbedField{
-			{Name: "-location", Value: "Parameter: 'city name' \n" +
-				"						Example: get weather -location Oslo"},
-			{Name: "-units", Value: "Parameter: 'system of measurement' \n " +
-				"					Available systems: Metric, Imperial and SI \n" +
-				"					Example: get weather -units Imperial"},
+			{Name: "-ingredient", Value: "Parameter: 'any ingredient' \n" +
+				"						Example: get meals -ingredient potato"},
+			{Name: "-ingredients", Value: "Parameter: 'multiple ingredients, separated with commas' \n \n" +
+				"					Example: add meals -ingredients chicken, apple, potato \n \n " +
+				"-Available commands"},
+			{Name: "Get", Value: "Get is used for receiving recipes without any flags, this command will default to using your fridge\n " +
+				"					his command has to be used in the combination of ingredient or ingredients flag to search for recipes with \n" +
+				"                   given ingredients \n" +
+				"                   Example with flag: get meals -ingredients chicken, flour, potato \n \n" +
+				"					Example from fridge: get meals"},
+			{Name: "-Add & Set", Value: "Add and Set are used for adding an ingredient to your virtual fridge \n " +
+				"					This command has to be used in the combination of ingredient or ingredients flag \n" +
+				"					Example: add meals -ingredients chicken, apple, potato"},
+			{Name: "Check & View", Value: "Check and View are used for viewing your virtual fridge \n " +
+				"					This command takes no flags and will ignore it them, if any \n \n" +
+				"					Example: view meals"},
+			{Name: "Remove & Delete", Value: "Remove and Delete are used for deleting ingredients from your virtual fridge \n " +
+				"					his command has to be used in the combination of ingredient or ingredients flag \n \n" +
+				"					Example: delete meals -ingredients chicken, apple, potato"},
 		},
 	}
 	return embed
