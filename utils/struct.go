@@ -1,5 +1,7 @@
 package utils
 
+import "time"
+
 /*
 	Struct for the weartherAPI response
 */
@@ -62,35 +64,65 @@ type IngredientList struct {
 	IngredientName string `json:"name"`
 }
 
-// NewsAnswer This struct formats the answer provided by the Bing News Search API.
-type NewsAnswer struct {
-	ReadLink       string `json:"readLink"`
-	QueryContext   struct {
-		OriginalQuery   string   `json:"originalQuery"`
-		AdultIntent     bool        `json:"adultIntent"`
+// Newspaper This struct formats the answer provided by the Bing News Search API.
+// In addition to some modifications made to fit multiple endpoints
+type Newspaper struct {
+	Type         string `json:"_type"`
+	ReadLink     string `json:"readLink"`
+	QueryContext struct {
+		OriginalQuery string `json:"originalQuery"`
+		AdultIntent   bool   `json:"adultIntent"`
 	} `json:"queryContext"`
-	TotalEstimatedMatches   int  `json:"totalEstimatedMatches"`
-	Sort  []struct {
-		Name    string  `json:"name"`
-		ID       string    `json:"id"`
-		IsSelected       bool  `json:"isSelected"`
-		URL      string   `json:"url"`
-	}  `json:"sort"`
-	Value   []struct   {
-		Name     string   `json:"name"`
-		URL   string    `json:"url"`
-		Image   struct   {
-			Thumbnail   struct  {
-				ContentUrl  string  `json:"thumbnail"`
-				Width   int  `json:"width"`
-				Height  int   `json:"height"`
+	TotalEstimatedMatches int `json:"totalEstimatedMatches"`
+	Sort                  []struct {
+		Name       string `json:"name"`
+		ID         string `json:"id"`
+		IsSelected bool   `json:"isSelected"`
+		URL        string `json:"url"`
+	} `json:"sort"`
+	Value []struct {
+		Name  string `json:"name"`
+		URL   string `json:"url"`
+		Image struct {
+			ContentURL string `json:"contentUrl"`
+			Thumbnail  struct {
+				ContentURL string `json:"contentUrl"`
+				Width      int    `json:"width"`
+				Height     int    `json:"height"`
 			} `json:"thumbnail"`
 		} `json:"image"`
-		Description  string  `json:"description"`
-		Provider  []struct   {
-			Type   string    `json:"_type"`
-			Name  string     `json:"name"`
+		Description string `json:"description"`
+		About       []struct {
+			ReadLink string `json:"readLink"`
+			Name     string `json:"name"`
+		} `json:"about,omitempty"`
+		Provider []struct {
+			Type  string `json:"_type"`
+			Name  string `json:"name"`
+			Image struct {
+				Thumbnail struct {
+					ContentURL string `json:"contentUrl"`
+				} `json:"thumbnail"`
+			} `json:"image"`
 		} `json:"provider"`
-		DatePublished   string   `json:"datePublished"`
+		DatePublished time.Time `json:"datePublished"`
+		Video         struct {
+			Name            string `json:"name"`
+			ThumbnailURL    string `json:"thumbnailUrl"`
+			EmbedHTML       string `json:"embedHtml"`
+			AllowHTTPSEmbed bool   `json:"allowHttpsEmbed"`
+			Thumbnail       struct {
+				Width  int `json:"width"`
+				Height int `json:"height"`
+			} `json:"thumbnail"`
+		} `json:"video,omitempty"`
 	} `json:"value"`
+}
+
+// NewsWebhook Webhook structure
+type NewsWebhook struct {
+	Address    		string              `firestore:"address"`
+	Timeout 		int             	`firestore:"timeout"`
+	Flags   		map[string]string 	`firestore:"flags"`
+	RequestType		string          	`firestore:"requestType"`
 }

@@ -96,7 +96,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 	case utils.Weather:
 		replies, err = services.HandleRouteToWeather(subRoute, flags, m.Author.ID)
 	case utils.News:
-		replies, err = services.HandleRouteToNews(subRoute, flags)
+		replies, err = services.HandleRouteToNews(subRoute, m.Author.ID, m.ChannelID, flags)
 	case utils.Bills:
 		reply, err = services.HandleRouteToBills(subRoute, flags, m.Author.ID)
 	case utils.MealPlan:

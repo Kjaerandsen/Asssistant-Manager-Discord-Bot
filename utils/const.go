@@ -42,13 +42,13 @@ const (
 	FlagPrefix  = "flagPref"
 	BotPrefix   = "botPref"
 	Query       = "q"
-	Country     = "country"
 	Category    = "category"
 	Page        = "p"
 	Freshness   = "fresh"
-	Market      = "market"
 	Since       = "since"
 	SortBy      = "sort"
+	Hooks      = "hooks"
+	Timeout	   = "timeout"
 )
 
 /*
@@ -60,6 +60,29 @@ const (
 	DefaultCity     = "Gjøvik"
 	DefaultUnit     = "Metric"
 	DefaultLanguage = "en"
+)
+
+/*
+	news_tracker constants
+*/
+const (
+	/*
+		Categories activated/deactivated
+	*/
+	BusinessCategory             = true
+	EntertainmentCategory        = true
+	HealthCategory               = true
+	PoliticsCategory             = true
+	ProductsCategory             = true
+	ScienceAndTechnologyCategory = true
+	SportsCategory               = true
+	USCategory                   = true
+	WorldCategory                = true
+	AfricaCategory               = true
+	AmericasCategory             = true
+	AsiaCategory                 = true
+	EuropeCategory               = true
+	MiddleEastCategory           = true
 )
 
 /*

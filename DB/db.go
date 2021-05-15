@@ -110,3 +110,140 @@ func Test(i string) {
 	}
 	fmt.Println(data)
 }
+
+// PostNewsWebHook Adds a Webhook to the news collection
+func PostNewsWebHook(userID, hookID string, values map[string]interface{}) (string, error) {
+	_, err := Client.Collection("news").
+		Doc(userID).
+		Collection("webhooks").
+		Doc(hookID).
+		Set(Ctx, values)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	return hookID, nil	// Returning the hookID serves as a confirmation of registration
+}
+
+// GetNewsWebHooksByUser Gets all webhooks registered by a discord user using their discord id
+func GetNewsWebHooksByUser(filter, userID string) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	iter := Client.Collection("news").
+		Doc(userID).
+		Collection("webhooks").
+		Documents(Ctx)
+	for {
+		doc, err := iter.Next()
+		if err == iterator.Done {
+			break
+		}
+		reqType, err := doc.DataAt("requestType")
+		if err != nil {
+			break
+		}
+		switch filter {
+		case "trending":
+			if reqType.(string) == "trending" {
+				// Add the document to the data map with the documents id as the map key
+				data[doc.Ref.ID] = doc.Data()
+			}
+		case "category":
+			if reqType.(string) == "category" {
+				// Add the document to the data map with the documents id as the map key
+				data[doc.Ref.ID] = doc.Data()
+			}
+		case "search":
+			if reqType.(string) == "category" {
+				// Add the document to the data map with the documents id as the map key
+				data[doc.Ref.ID] = doc.Data()
+			}
+		default:	// Gets all request types webhooks
+			// Add the document to the data map with the documents id as the map key
+			data[doc.Ref.ID] = doc.Data()
+		}
+	}
+
+	return data, nil
+}
+
+// GetNewsWebHooksByID Gets a webhook registered by a discord user using the hook id
+func GetNewsWebHooksByID(userID, hookID string) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+	doc, err := Client.Collection("news").
+		Doc(userID).
+		Collection("webhooks").
+		Doc(hookID).
+		Get(Ctx)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	data[doc.Ref.ID] = doc.Data()
+	return data, nil
+}
+
+// DeleteNewsWebHookByID Deletes a Webhook registered by a discord user using the hook id
+// Returns String with confirmation of webhook deletion
+func DeleteNewsWebHookByID(userID, hookID string) (string, error) {
+	_, err := Client.Collection("news").
+		Doc(userID).
+		Collection("webhooks").
+		Doc(hookID).
+		Delete(Ctx)
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	return fmt.Sprintf("Webhook %s has been deleted", hookID), nil
+}
+
+// DeleteNewsWebHooksByUser Deletes all webhooks registered by a discord user using their discord id
+func DeleteNewsWebHooksByUser(userID string) (string, error) {
+	col := Client.Collection("news").Doc(userID).Collection("webhooks")
+	// Delete all documents for webhooks collection
+	err := deleteCollection(Ctx, Client, col, 500) // 500 batch size is the limit
+	if err != nil {
+		fmt.Println(err)
+		return "", err
+	}
+	return fmt.Sprintf("All Webhooks for %s have been deleted", userID), nil
+}
+
+// deleteCollection Retrieved from firestore documentation
+// Takes values for context, client, a reference to the collection and batchsize
+func deleteCollection(ctx context.Context, client *firestore.Client,
+	ref *firestore.CollectionRef, batchSize int) error {
+	for {
+		// Get a batch of documents
+		iter := ref.Limit(batchSize).Documents(ctx)
+		numDeleted := 0
+
+		// Iterate through the documents, adding
+		// a delete operation for each one to a
+		// WriteBatch.
+		batch := client.Batch()
+		for {
+			doc, err := iter.Next()
+			if err == iterator.Done {
+				break
+			}
+			if err != nil {
+				return err
+			}
+
+			batch.Delete(doc.Ref)
+			numDeleted++
+		}
+
+		// If there are no documents to delete,
+		// the process is over.
+		if numDeleted == 0 {
+			return nil
+		}
+
+		_, err := batch.Commit(ctx)
+		if err != nil {
+			return err
+		}
+	}
+}
