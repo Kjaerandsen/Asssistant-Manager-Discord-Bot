@@ -3,6 +3,7 @@ package DB
 import (
 	"cloud.google.com/go/firestore"
 	"context"
+	"errors"
 	firebase "firebase.google.com/go"
 	"fmt"
 	"google.golang.org/api/iterator"
@@ -19,7 +20,6 @@ var Client *firestore.Client
 // DatabaseInit Initiates the database connection
 func DatabaseInit() {
 	// Connects to the firestore database
-	fmt.Println("Hello I am running")
 	Ctx = context.Background()
 	sa := option.WithCredentialsFile("DB/service-account.json")
 	app, err := firebase.NewApp(Ctx, nil, sa)
@@ -29,7 +29,6 @@ func DatabaseInit() {
 	}
 	Client, err = app.Firestore(Ctx)
 	if err != nil {
-		fmt.Println("Error in firebase start")
 		fmt.Println(err)
 		log.Fatalln(err)
 	}
@@ -54,7 +53,7 @@ func RetrieveFromDatabase(collection string, entry string) (map[string]interface
 		fmt.Println(err)
 		// Creates an empty output
 		output := make(map[string]interface{})
-		return output, err
+		return output, errors.New("Could not find your storage, are you sure you have initialized a storage for this service?")
 	}
 
 	// Returns the data
