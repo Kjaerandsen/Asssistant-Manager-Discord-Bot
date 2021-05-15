@@ -64,3 +64,12 @@ Rename this file to "service-account.json" and move it to the DB folder of the g
 ### Dependencies:
 
 Discordgo https://github.com/bwmarrin/discordgo
+
+## Original Project Plan
+
+The original plan was to create the structure for a bot in which we could easily add "services" through implementing many different external APIs. After implementing this structure we wanted to test it by adding three services, Bills, Meal Planner and News fetcher. We wanted this structure to have a high level of scaleability, only needing to do the bare minimum to implement new services.
+
+We were successful in creating an environment in which it was easy to implement external APIs, reformat their responses into discord messages and post them to the user. However, it was not perfect. 
+
+Ideally we would have wanted to refactor the request handler and the message handler, move this message handler onto its own file such that it would be much more organized. There is also room for further refactoring of functions used within the services. With good refactoring, we still believe that all the services can be a part of the same package. But it has become apparent that without further refactoring, there is too much clutter, and each service should be their own package. 
+
