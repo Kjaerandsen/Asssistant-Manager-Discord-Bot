@@ -85,6 +85,11 @@ func HandleRouteToReminder(subRoute string, flags map[string]string, s *discordg
 					}(strings.Split(flags["channel"], " ")[0])
 				}
 
+				// Special handle dms
+				if len(users) == 1 && users[0] == m.Author{
+					channel = nil
+				}
+
 				// Add reminder to database
 				reminder := map[string]interface{}{
 					"alarmTime": alarmTime,
