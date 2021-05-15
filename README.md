@@ -9,25 +9,28 @@ All information to the service will be sent through discord in your discord-serv
 
 ## Endpoints / discord commands and functionality
 
+Descriptive instructions on how to use these functionalities are found using the @<Bot> help command
+
 Weather:
-Get weather with a specified location
-Get weather with a default / saved location
-Bills:
-Add bill (name and value)
-Get bills
-Remove bill (name)
+- Get weather with a specified location
+- Get weather with a default / saved location
+
 Reminders:
-Add reminder
-Get reminder
-Remove reminder (name)
+
+- Add reminder
+- Get reminder
+- Remove reminder (name)
+
 Fridge and cooking:
-Add to fridge (ingredient)
-Check fridge
-Remove from fridge (ingredient)
-Get recipe based on ingredients in the fridge
-Get recipe based on specified ingredients
+
+- Add to fridge (ingredient)
+- Check fridge
+- Remove from fridge (ingredient)
+- Get recipe based on ingredients in the fridge
+- Get recipe based on specified ingredients
+
 News
-Get news with or without parameters:
+- Get news with or without parameters
 
 # Adding the bot to your own server
 
