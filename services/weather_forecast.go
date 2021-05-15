@@ -14,7 +14,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) (discordgo.MessageEmbed, error) {
+func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) ([]discordgo.MessageEmbed, error) {
 	var weatherEmbed = discordgo.MessageEmbed{}
 
 	unitsOfMeasurement := make(map[string][3]string)
@@ -24,7 +24,6 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 	currentCity := utils.DefaultCity
 	currentUnit := strings.ToLower(utils.DefaultUnit)
 	currentUnitsOfMeasurement := unitsOfMeasurement[currentUnit]
-	fmt.Println(unitsOfMeasurement)
 
 	// Check if command is valid
 	switch subRoute {
@@ -65,7 +64,7 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			weatherEmbed.Fields = fields
 			weatherEmbed.Footer = &footer
 
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 
 		} else {
 			var currentWeather utils.WeatherStruct
@@ -74,7 +73,7 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			//default response if no flag is given
 			data, err := DB.RetrieveFromDatabase("weather", uid)
 			if err != nil {
-				return weatherEmbed, err
+				return []discordgo.MessageEmbed{weatherEmbed}, err
 			}
 			// Checks if the default location is set, if not default to the defaultcity of the program
 			if data["location"] == nil {
@@ -102,11 +101,10 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 			weatherEmbed.Fields = fields
 			weatherEmbed.Footer = &footer
 
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 		}
 	case utils.Help:
-		weatherEmbed = utils.WeatherHelper()
-		return weatherEmbed, nil
+		return utils.WeatherHelper(), nil
 	case utils.Set:
 		// Get the city from the command
 		if len(flags) != 0 {
@@ -122,18 +120,18 @@ func HandleRouteToWeather(subRoute string, flags map[string]string, uid string) 
 
 			weatherEmbed.Title = "Weather location update"
 			weatherEmbed.Description = "New default weather location set"
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 		} else {
 			weatherEmbed.Title = "Something went wrong"
 			weatherEmbed.Description = "No location specified when setting default weather location"
-			return weatherEmbed, nil
+			return []discordgo.MessageEmbed{weatherEmbed}, nil
 		}
 	default:
 		// Error embed passed
 		weatherEmbed.Title = "Something went wrong"
-		weatherEmbed.Description = "Uknown flag was passed, please use @bot help weather to see what flags are available"
+		weatherEmbed.Description = "Unknown flag was passed, please use @bot help weather to see what flags are available"
 
-		return weatherEmbed, nil
+		return []discordgo.MessageEmbed{weatherEmbed}, nil
 
 		//return weatherEmbed, errors.New("sub route not recognized")
 	}

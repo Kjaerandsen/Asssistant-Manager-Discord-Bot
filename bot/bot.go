@@ -92,7 +92,7 @@ func router(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	switch route {
 	case utils.Weather:
-		reply, err = services.HandleRouteToWeather(subRoute, flags, m.Author.ID)
+		replies, err = services.HandleRouteToWeather(subRoute, flags, m.Author.ID)
 	case utils.News:
 		replies, err = services.HandleRouteToNews(subRoute, flags)
 	case utils.Reminders:
