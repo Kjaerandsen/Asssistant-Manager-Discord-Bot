@@ -84,12 +84,13 @@ The group members had different strengths and weaknesses. Some were proficient i
 
 We learned a lot from each other. In areas where we had low knowledge, other project members would teach us what we were missing. And our skill sets became more well rounded as we drew from each other's knowledge. A list of some are:
 
-Discord API
-Dockerfiles & deployment
-Firestore, setting up and using it
-The value of good time management
-Better code modularity and methods of structuring the program
-Use of branches in Git
+- Discord API
+- Dockerfiles & deployment
+- Firestore, setting up and using it
+- The value of good time management
+- Better code modularity and methods of structuring the program
+- Use of branches in Git
+
 
 
 
