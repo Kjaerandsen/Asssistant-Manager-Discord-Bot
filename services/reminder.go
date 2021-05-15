@@ -124,21 +124,18 @@ func HandleRouteToReminder(subRoute string, flags map[string]string, s *discordg
 
 	case utils.Delete, utils.Remove:
 		if len(flags) != 0{
-			/*
 			reminderList, err := DB.RetrieveFromDatabase("reminders", m.GuildID)
-				if err != nil {
-					return nil, errors.New("could not find any reminders on this guild")
-				}
-				id := strings.TrimSpace(flags["id"])
-				if _, ok := reminderList[id]; !ok{
-					return nil, errors.New("could not find the reminder")
-				}
+			if err != nil {
+				return nil, errors.New("could not find any reminders on this guild")
+			}
+			id := strings.TrimSpace(flags["id"])
+			if _, ok := reminderList[id]; !ok{
+				return nil, errors.New("could not find the reminder")
+			}
 
-				delete(reminderList, flags["id"])
-				DB.AddToDatabase("reminders", m.GuildID, reminderList)
-				return []discordgo.MessageEmbed{{Title: "📌 Reminder has been forgotten"}}, nil
-			 */
-			return nil, errors.New("something wrong")
+			delete(reminderList, flags["id"])
+			DB.AddToDatabase("reminders", m.GuildID, reminderList)
+			return []discordgo.MessageEmbed{{Title: "📌 Reminder has been forgotten"}}, nil
 		} else {
 			return nil, errors.New("need to specify the -id tag")
 		}

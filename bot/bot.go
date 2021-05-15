@@ -21,7 +21,7 @@ import (
 var (
 	Token      string
 	FlagPrefix = "-"
-	BotPrefix  = "asdf"
+	BotPrefix  = "<@!834015714200649758>"
 )
 
 func init() {
