@@ -19,15 +19,37 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 		return createViewMessage(uid)
 	case utils.Get:
 		if len(flags) != 0 {
-			return mealEmbed, nil
-		} else {
-			//Get from fridge
-			recipes, err := getRecipeFromFridge(uid, 0)
-			if err != nil {
-				return mealEmbed, err
+			if ingredient, ok := flags[utils.Ingredient]; ok {
+				singular := checkSingleIngredient(ingredient)
+				if !singular {
+					return mealEmbed, errors.New("Wrong use of flags, -Ingredient can only be used for singular ingredients")
+				}
+				ingredient = strings.ReplaceAll(ingredient, " ", "")
+				recipes, nil := getRecipeByIngredient(ingredient, "10")
+				return createRecipeMessages(recipes), nil
+
+			} else if ingredients, ok := flags[utils.Ingredients]; ok {
+				singular := checkSingleIngredient(ingredients)
+				if !singular {
+					return mealEmbed, errors.New("Wrong use of flags or bad syntax, -Ingredients can only be used for multiple ingredients \n given input: " + ingredients + "\n Example of good request: get meal -ingredients potato, chicken, ham")
+				}
+				//Replace spaces with no space as the url cannot generate without
+				ingredients = strings.ReplaceAll(ingredients, " ", "")
+				recipes, err := getRecipeByIngredient(ingredients, "10")
+				if err != nil {
+					return mealEmbed, err
+				} else {
+					return createRecipeMessages(recipes), nil
+				}
 			}
-			return createRecipeMessages(recipes), nil
 		}
+		//No Recognizable flags
+		recipes, err := getRecipeFromFridge(uid, 0)
+		if err != nil {
+			return mealEmbed, err
+		}
+		return createRecipeMessages(recipes), nil
+
 	case utils.Add, utils.Set:
 		if len(flags) != 0 {
 			if ingredient, ok := flags[utils.Ingredient]; ok {
@@ -132,12 +154,26 @@ func getRecipeFromFridge(uid string, number int) (utils.Recipe, error) {
 	requestError := dataRequests.GetAndDecodeURL(url, &recipe)
 	//Check if there was any errors in fetching and decoding the url
 	if requestError != nil {
-		fmt.Println("Hello what happened")
 		return utils.Recipe{}, err
 	}
 	return recipe, nil
 }
-
+func getRecipeByIngredient(ingredients string, number string) (utils.Recipe, error) {
+	//TODO - convert number to int and check if its a number
+	var recipes utils.Recipe
+	//TODO - Implement new structs and make a new function for random
+	if ingredients == "" {
+		ingredients = "chicken,beef,pork,onion,potato,carrot,rhubarb,honey,butter,milk"
+	}
+	url := "https://api.spoonacular.com/recipes/findByIngredients?ingredients=" + ingredients + "&number=" + number + "&apiKey=" + utils.MealKey
+	requestError := dataRequests.GetAndDecodeURL(url, &recipes)
+	//Check if there was any errors in fetching and decoding the url
+	if requestError != nil {
+		fmt.Println("Hello what happened")
+		return utils.Recipe{}, requestError
+	}
+	return recipes, nil
+}
 func createRecipeMessages(recipes utils.Recipe) []discordgo.MessageEmbed {
 	var messageArray []discordgo.MessageEmbed
 	for _, recipe := range recipes {
