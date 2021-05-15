@@ -31,6 +31,10 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 	case utils.Add, utils.Set:
 		if len(flags) != 0 {
 			if ingredient, ok := flags[utils.Ingredient]; ok {
+				singular := checkSingleIngredient(ingredient)
+				if !singular {
+					return mealEmbed, errors.New("Wrong use of flags use, -Ingredient can only be used for singular ingredients")
+				}
 				err := addToFridge(ingredient, uid)
 				if err != nil {
 					return mealEmbed, err
@@ -39,6 +43,19 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 				info.Title = "Added ingredient " + ingredient
 				mealEmbed = append(mealEmbed, info)
 				return mealEmbed, nil
+				//Check for multiple ingredient flag
+			} else if ingredients, ok := flags[utils.Ingredients]; ok {
+				singular := checkSingleIngredient(ingredients)
+				if !singular {
+					return mealEmbed, errors.New("Wrong use of flags use, -Ingredient can only be used for singular ingredients")
+				}
+				list, err := doParseIngredients(ingredients)
+				//If parser found only one ingredient, or wrong syntax
+				if err != nil {
+					return mealEmbed, err
+				}
+				message := addMultipleIngredients(list, uid)
+				return message, nil
 			}
 			return mealEmbed, errors.New("ingredient flag is required")
 		} else {
@@ -60,28 +77,25 @@ func HandleRouteToMeals(subRoute string, flags map[string]string, uid string) ([
 				info.Title = "Removed ingredient: " + ingredient
 				mealEmbed = append(mealEmbed, info)
 				return mealEmbed, nil
+				//If multiple ingredient flags are passed
 			} else if ingredients, ok := flags[utils.Ingredients]; ok {
+				singular := checkSingleIngredient(ingredients)
+				if !singular {
+					return mealEmbed, errors.New("Wrong use of flags use, -Ingredient can only be used for singular ingredients")
+				}
 				list, err := doParseIngredients(ingredients)
-
+				//If parser found only one ingredient, or wrong syntax
 				if err != nil {
 					return mealEmbed, err
 				}
-				for index, ing := range list {
-					err = removeFromFridge(ing, uid)
-
-					if err != nil {
-						//Create error string
-						deletedElements := strings.Join(list[0:index], ",")
-						remainingElements := strings.Join(list[index:len(list)-1], ",")
-						return mealEmbed, errors.New("An element was not found in fridge:" + list[index] + "\n" + "deleted elemments from fridge: " + deletedElements + "\n remaining elements: " + remainingElements)
-					}
-				}
-
+				message := removeMultipleFromFridge(list, uid)
+				return message, nil
 			}
-			return mealEmbed, errors.New("Ingredient(s) flag not found in message. See: help meals for instructions")
 		} else {
 			return mealEmbed, errors.New("Ingredient or Ingredients flag is needed to delete from fridge, see: help meals for instructions")
 		}
+		return mealEmbed, errors.New("Ingredient(s) flag not found in message. See: help meals for instructions")
+
 	case utils.Help:
 		return utils.MealPlannerHelper(), nil
 	default:
@@ -188,7 +202,7 @@ func retrieveFridgeIngredients(uid string) (utils.Fridge, error) {
 
 // addToFridge Adds an ingredient to the database
 func addToFridge(ingredient string, uid string) error {
-	fmt.Println("Add to fridge command")
+	ingredient = strings.TrimSpace(ingredient)
 	// Retrieve the fridge from the database
 	fridge, err := retrieveFridge(uid)
 	if err != nil {
@@ -207,6 +221,7 @@ func removeFromFridge(ingredient string, uid string) error {
 	// Retrieve the fridge from the database
 	fridge, err := retrieveFridge(uid)
 	if err != nil {
+		print(err.Error())
 		return err
 	}
 
@@ -267,8 +282,52 @@ func doParseIngredients(ingredients string) ([]string, error) {
 		return list, errors.New("Error during parsing, please seperate using commas like: -ingredients potato,chicken,sausage")
 	}
 	//Remove trailing and start spaces
-	for _, value := range list {
-		value = strings.TrimSpace(value)
-	}
+	//for _, value := range list {
+	//	value = strings.TrimSpace(value)
+	//}
 	return list, nil
+}
+
+func removeMultipleFromFridge(ingredients []string, uid string) []discordgo.MessageEmbed {
+	//Initialize description strings
+	var missedIngredients, foundIngredients string
+	//Iterate over the list and try removing the items
+	for _, ingredient := range ingredients {
+		ingredient = strings.TrimSpace(ingredient)
+		err := removeFromFridge(ingredient, uid)
+		if err != nil {
+			missedIngredients += " " + ingredient
+		} else {
+			foundIngredients += " " + ingredient
+		}
+	}
+	var messageArray = []discordgo.MessageEmbed{}
+	var info = discordgo.MessageEmbed{}
+	foundField := discordgo.MessageEmbedField{Name: "Ingredients that got deleted: ", Value: foundIngredients}
+	remainingField := discordgo.MessageEmbedField{Name: "Was not found and not deleted: ", Value: missedIngredients}
+	info.Fields = []*discordgo.MessageEmbedField{&foundField, &remainingField}
+	messageArray = append(messageArray, info)
+	return messageArray
+}
+
+func addMultipleIngredients(ingredients []string, uid string) []discordgo.MessageEmbed {
+	//Initialize description strings
+	var errorMessage string
+	//Iterate over the list and try removing the items
+	for _, ingredient := range ingredients {
+		ingredient = strings.TrimSpace(ingredient)
+		err := addToFridge(ingredient, uid)
+		if err != nil {
+			errorMessage += err.Error() + "\n"
+		}
+	}
+	if errorMessage == "" {
+		errorMessage = "No errors found, all ingredients was added to fridge! \n Do view meals to see your fridge!"
+	}
+	var messageArray = []discordgo.MessageEmbed{}
+	var info = discordgo.MessageEmbed{}
+	errorField := discordgo.MessageEmbedField{Name: "Errors: ", Value: errorMessage}
+	info.Fields = []*discordgo.MessageEmbedField{&errorField}
+	messageArray = append(messageArray, info)
+	return messageArray
 }
