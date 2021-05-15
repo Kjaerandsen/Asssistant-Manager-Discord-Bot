@@ -9,7 +9,7 @@ All information to the service will be sent through discord in your discord-serv
 
 ## Endpoints / discord commands and functionality
 
-Descriptive instructions on how to use these functionalities are found using the: "**@Bot help**" command in discord after inviting it to your server
+Descriptive instructions on how to use these functionalities are found using the: "**@Bot get help**" command in discord after inviting it to your server
  
 Weather:
 - Get weather with a specified location
